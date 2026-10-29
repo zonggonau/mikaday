@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Illustration of a morning desk with a pour-over kettle, sketchbook, and the Mountain Sunset Mug">
+<title>Illustration of a morning desk with a pour-over kettle, sketchbook, and the Mountain Sunset Mug</title>
+
+    <rect width="1600" height="900" fill="#F1EBE3"/>
+    <g>
+    <rect x="300" y="70" width="360" height="420" rx="6" fill="#FAF7F2"/>
+    <rect x="300" y="70" width="360" height="420" rx="6" fill="none" stroke="#E0D5C6" stroke-width="14"/>
+    <path d="M480 70 V490 M300 280 H660" stroke="#E0D5C6" stroke-width="10"/>
+    <circle cx="559.2" cy="196" r="43.199999999999996" fill="#E87932" opacity="0.18"/>
+  </g>
+    <rect x="0" y="600" width="1600" height="300" fill="#C9A07A"/>
+    <rect x="0" y="600" width="1600" height="14" fill="#A9805C"/>
+    <g transform="translate(560 360)">
+      <path d="M40 0 H160 L190 120 H10 Z" fill="#D9C6B2"/>
+      <path d="M10 120 H190 L180 160 H20 Z" fill="#EFE4D4"/>
+      <path d="M100 160 V230" stroke="#242424" stroke-width="10"/>
+      <path d="M40 230 H160 V250 H40 Z" fill="#242424"/>
+    </g>
+    <g transform="translate(780 410)">
+      <path d="M20 40 C20 -10 160 -10 160 40 L150 190 H30 Z" fill="#8B8580"/>
+      <path d="M160 70 C220 70 220 140 152 150" fill="none" stroke="#8B8580" stroke-width="14"/>
+      <path d="M40 40 C20 0 10 -20 -30 -30" stroke="#8B8580" stroke-width="12" fill="none" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(1010 480) scale(1.05)">
+    <path d="M96 22 C132 22 140 82 98 92" fill="none" stroke="#1F1E1D" stroke-width="14" stroke-linecap="round"/>
+    <rect x="0" y="0" width="104" height="120" rx="10" fill="#1F1E1D"/>
+    <ellipse cx="52" cy="2" rx="52" ry="8" fill="#2E2C2A"/>
+    <ellipse cx="52" cy="3" rx="44" ry="5" fill="#5A3B26"/>
+    <clipPath id="mugclip1010480"><rect x="12" y="26" width="80" height="62" rx="4"/></clipPath>
+    <g clip-path="url(#mugclip1010480)"><g transform="translate(12 26) scale(0.1 0.11923076923076924)">
+    <rect width="800" height="520" fill="#1F1E1D"/>
+    <circle cx="540" cy="238" r="96" fill="#E87932"/>
+    <path d="M0 296 L118 214 L206 266 L318 176 L428 258 L536 196 L648 266 L800 204 V520 H0 Z" fill="#D9C6B2"/>
+    <path d="M0 356 L104 288 L196 336 L304 252 L404 326 L508 278 L612 346 L716 298 L800 324 V520 H0 Z" fill="#9A6A4C"/>
+    <path d="M0 418 L140 338 L252 396 L362 328 L470 404 L588 356 L700 414 L800 378 V520 H0 Z" fill="#3A3836"/>
+    <path d="M402 520 C 440 488, 352 470, 392 444 C 424 424, 506 432, 470 404" fill="none" stroke="#FAF7F2" stroke-width="18" stroke-linecap="round"/>
+  </g></g>
+    <g fill="none" stroke="#FFFFFF" stroke-opacity="0.7" stroke-width="5" stroke-linecap="round">
+      <path d="M36 -16 C26 -34 46 -44 36 -62"/><path d="M60 -12 C50 -32 70 -42 60 -64"/></g>
+  </g>
+    <g transform="translate(560 650) rotate(-3)">
+    <rect x="0" y="0" width="420" height="200" rx="6" fill="#FFFDF8" stroke="#E2D6C6" stroke-width="3"/>
+    <path d="M210 4 V196" stroke="#E2D6C6" stroke-width="3"/>
+    <g fill="none" stroke="#8B7F73" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M235.20000000000002 140 L268.8 92 L298.2 120 L336 76 L378 124"/>
+      <circle cx="327.6" cy="56.00000000000001" r="16"/>
+      <path d="M252 164 C285.6 152, 310.8 172, 352.8 160"/>
+    </g>
+    <g stroke="#CFC4B6" stroke-width="3" stroke-linecap="round">
+      <path d="M33.6 44 H168"/><path d="M33.6 68 H151.2"/><path d="M33.6 92 H176.4"/>
+    </g>
+  </g>
+    <g transform="translate(1040 720) rotate(12)">
+    <rect x="0" y="-5" width="140" height="10" rx="3" fill="#242424"/>
+    <path d="M140 -5 L158 0 L140 5 Z" fill="#E8D2B0"/>
+    <path d="M152 -2 L158 0 L152 2 Z" fill="#242424"/>
+  </g>
+    <g transform="translate(1200 600) scale(1)">
+    <path d="M40 0 C10 -60 -20 -70 -30 -120 C10 -100 40 -60 44 0 Z" fill="#8C9A78"/>
+    <path d="M50 0 C60 -70 100 -100 120 -140 C120 -90 80 -50 58 0 Z" fill="#6F7D5F"/>
+    <path d="M46 0 C40 -60 50 -110 70 -160 C80 -110 66 -50 54 0 Z" fill="#8C9A78"/>
+    <path d="M10 0 H90 L80 70 H20 Z" fill="#9A6A4C"/>
+    <rect x="6" y="-6" width="88" height="14" rx="4" fill="#AD7B5A"/>
+  </g>
+  
+</svg>

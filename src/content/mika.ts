@@ -1,0 +1,49 @@
+import type { MikaProfile } from "./types";
+
+export const mika: MikaProfile = {
+  name: "Mika",
+  age: 28,
+  hometown: "Portland, Oregon",
+  role: "AI virtual creator",
+  shortBio:
+    "Mika is a fictional freelance designer from Portland who loves good coffee, quiet mornings, simple everyday style, and getting out of town on the weekend.",
+  bio: [
+    "Mika is a virtual creator — an AI character with her own small, fictional world. In that world she is 28, lives in Portland, Oregon, and works as a freelance designer from a sunny corner desk crowded with sketchbooks and half-finished coffee.",
+    "Her days follow a familiar rhythm: a slow morning, a few hours of focused work, a walk to clear her head, and plenty of time for the small things that make a day feel like hers. On weekends she trades the desk for trails, rivers, and long drives with no particular plan.",
+    "The designs at MIKADAY are inspired by that rhythm. Mika's stories are fiction, created to share a mood and a point of view. The products are real — original MIKADAY designs, printed to order and shipped from our fulfillment partner.",
+  ],
+  interests: [
+    {
+      title: "Coffee, slowly",
+      body: "Mornings start with a pour-over and no rush. Coffee is less about caffeine and more about a few quiet minutes before the day gets loud.",
+    },
+    {
+      title: "Illustration",
+      body: "Loose sketches, layered landscapes, and warm, earthy palettes. Most ideas start as a doodle in the margin of something else.",
+    },
+    {
+      title: "Everyday style",
+      body: "Cream, black, and earthy tones. Comfortable pieces that work at the desk, on a walk, and at the coffee shop after.",
+    },
+    {
+      title: "Weekend adventures",
+      body: "Mountain views, river trails, and small towns along the way. Never a big itinerary — just enough to come back with new ideas.",
+    },
+  ],
+  portrait: {
+    src: "/images/portrait.svg",
+    kind: "illustration",
+    alt: "Illustrated portrait of Mika, a woman with a chin-length dark brown bob and amber-orange glasses, smiling softly.",
+    brief: "Portrait of Mika — chin-length dark brown bob, translucent amber-orange glasses, cream top, natural light.",
+    conceptual: true,
+  },
+  workspace: {
+    src: "/images/workspace.svg",
+    kind: "illustration",
+    alt: "Illustration of Mika sketching at her sunlit desk with a laptop and a black Mountain Sunset Mug.",
+    brief: "Mika at her desk with sketchbooks, a laptop, and the black Mountain Sunset Mug.",
+    conceptual: true,
+  },
+  disclosure:
+    "Mika is an AI virtual creator. Her lifestyle stories are fictional; the products are real items sold by MIKADAY.",
+};

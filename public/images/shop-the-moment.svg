@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1250 1000" width="1250" height="1000" role="img" aria-label="Illustration of Mika's desk mid-sketch with the black Mountain Sunset Mug">
+<title>Illustration of Mika's desk mid-sketch with the black Mountain Sunset Mug</title>
+
+    <rect width="1250" height="1000" fill="#C9A07A"/>
+    <g opacity="0.25" stroke="#A9805C" stroke-width="4" fill="none">
+      <path d="M0 160 C300 140 700 190 1250 150"/><path d="M0 420 C400 400 800 450 1250 410"/><path d="M0 720 C350 700 900 760 1250 700"/>
+    </g>
+    <g transform="translate(180 250) rotate(-5)">
+    <rect x="0" y="0" width="560" height="380" rx="6" fill="#FFFDF8" stroke="#E2D6C6" stroke-width="3"/>
+    <path d="M280 4 V376" stroke="#E2D6C6" stroke-width="3"/>
+    <g fill="none" stroke="#8B7F73" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M313.6 266 L358.40000000000003 174.8 L397.59999999999997 228 L448 144.4 L504 235.6"/>
+      <circle cx="436.8" cy="106.4" r="30.400000000000002"/>
+      <path d="M336 311.59999999999997 C380.8 288.8, 414.4 326.8, 470.4 304"/>
+    </g>
+    <g stroke="#CFC4B6" stroke-width="3" stroke-linecap="round">
+      <path d="M44.800000000000004 83.6 H224"/><path d="M44.800000000000004 129.20000000000002 H201.6"/><path d="M44.800000000000004 174.8 H235.2"/>
+    </g>
+  </g>
+    <g transform="translate(620 600) rotate(-36)">
+    <rect x="0" y="-5" width="170" height="10" rx="3" fill="#E87932"/>
+    <path d="M170 -5 L188 0 L170 5 Z" fill="#E8D2B0"/>
+    <path d="M182 -2 L188 0 L182 2 Z" fill="#242424"/>
+  </g>
+    <ellipse cx="642" cy="604" rx="56" ry="38" fill="#EAC6A8"/>
+    <path d="M600 640 C640 700 720 760 820 800 L760 900 C660 860 580 760 560 690 Z" fill="#EFE4D4"/>
+    <g transform="translate(900 260)">
+      <circle cx="80" cy="80" r="92" fill="#2E2C2A"/>
+      <circle cx="80" cy="80" r="78" fill="#1F1E1D"/>
+      <circle cx="80" cy="80" r="64" fill="#5A3B26"/>
+      <circle cx="62" cy="62" r="14" fill="#7A5236" opacity="0.6"/>
+      <path d="M160 60 C212 56 214 108 162 104" fill="none" stroke="#1F1E1D" stroke-width="18" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(960 560) scale(1.2)">
+    <path d="M96 22 C132 22 140 82 98 92" fill="none" stroke="#1F1E1D" stroke-width="14" stroke-linecap="round"/>
+    <rect x="0" y="0" width="104" height="120" rx="10" fill="#1F1E1D"/>
+    <ellipse cx="52" cy="2" rx="52" ry="8" fill="#2E2C2A"/>
+    <ellipse cx="52" cy="3" rx="44" ry="5" fill="#5A3B26"/>
+    <clipPath id="mugclip960560"><rect x="12" y="26" width="80" height="62" rx="4"/></clipPath>
+    <g clip-path="url(#mugclip960560)"><g transform="translate(12 26) scale(0.1 0.11923076923076924)">
+    <rect width="800" height="520" fill="#1F1E1D"/>
+    <circle cx="540" cy="238" r="96" fill="#E87932"/>
+    <path d="M0 296 L118 214 L206 266 L318 176 L428 258 L536 196 L648 266 L800 204 V520 H0 Z" fill="#D9C6B2"/>
+    <path d="M0 356 L104 288 L196 336 L304 252 L404 326 L508 278 L612 346 L716 298 L800 324 V520 H0 Z" fill="#9A6A4C"/>
+    <path d="M0 418 L140 338 L252 396 L362 328 L470 404 L588 356 L700 414 L800 378 V520 H0 Z" fill="#3A3836"/>
+    <path d="M402 520 C 440 488, 352 470, 392 444 C 424 424, 506 432, 470 404" fill="none" stroke="#FAF7F2" stroke-width="18" stroke-linecap="round"/>
+  </g></g>
+    
+  </g>
+    <g transform="translate(140 760) rotate(8)"><rect width="220" height="140" rx="10" fill="#242424"/><circle cx="60" cy="70" r="34" fill="none" stroke="#4A4744" stroke-width="10"/><circle cx="160" cy="70" r="34" fill="none" stroke="#4A4744" stroke-width="10"/></g>
+    <g transform="translate(860 820) rotate(-12)"><rect width="150" height="110" rx="6" fill="#FAF7F2"/><path d="M20 30 H130 M20 55 H110 M20 80 H120" stroke="#CFC4B6" stroke-width="5" stroke-linecap="round"/></g>
+  
+</svg>

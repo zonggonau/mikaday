@@ -1,0 +1,188 @@
+// Printful IDs (sync product / sync variant / shipment / order) are stored as
+// BigInt because sync variant IDs already exceed the 32-bit integer range.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Product {
+  id               BigInt    @id // Printful sync product ID
+  externalId       String?
+  name             String // name as set in Printful
+  title            String? // optional storefront title override
+  slug             String    @unique
+  description      String?
+  thumbnailUrl     String?
+  catalogProductId Int?
+  brand            String?
+  categoryId       Int?
+  categoryName     String?
+  variantCount     Int       @default(0)
+  published        Boolean   @default(false)
+  featured         Boolean   @default(false)
+  sortOrder        Int       @default(0)
+  detailsSyncedAt  DateTime?
+  deletedAt        DateTime? // removed from the Printful store
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  variants Variant[]
+
+  @@index([published, deletedAt])
+}
+
+model Variant {
+  id               BigInt   @id // Printful sync variant ID (used as the Snipcart item ID)
+  productId        BigInt
+  catalogVariantId Int // Printful catalog variant ID (used for shipping rates)
+  name             String
+  size             String?
+  color            String?
+  colorCode        String?
+  sku              String?
+  retailPrice      Decimal  @db.Decimal(10, 2)
+  cost             Decimal? @db.Decimal(10, 2) // Printful base price, for margin display
+  currency         String
+  imageUrl         String?
+  availability     String   @default("active")
+  enabled          Boolean  @default(true)
+  position         Int      @default(0)
+  updatedAt        DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT // checkout started, PayPal payment not captured yet
+  RECEIVED // paid, not yet sent to Printful
+  DRAFT // created in Printful as a draft, waiting for confirmation
+  PROCESSING // confirmed in Printful, in production
+  ON_HOLD
+  PARTIAL // some packages shipped
+  SHIPPED
+  RETURNED
+  REFUNDED
+  CANCELED
+  FAILED
+}
+
+model Order {
+  id                 String      @id @default(cuid())
+  number             Int         @unique @default(autoincrement())
+  invoiceNumber      String      @unique
+  mode               String // PayPal "sandbox" | "live"
+  email              String
+  phone              String?
+  customerName       String
+  currency           String
+  subtotal           Decimal     @db.Decimal(10, 2)
+  shippingTotal      Decimal     @db.Decimal(10, 2)
+  taxTotal           Decimal     @db.Decimal(10, 2)
+  discountTotal      Decimal     @db.Decimal(10, 2)
+  total              Decimal     @db.Decimal(10, 2)
+  shippingMethod     String? // Printful rate ID, e.g. STANDARD
+  shippingMethodName String?
+  shippingAddress    Json
+  status             OrderStatus @default(PENDING_PAYMENT)
+  paymentProvider    String      @default("paypal")
+  paymentOrderId     String?     @unique // PayPal order ID
+  paymentCaptureId   String?     @unique // PayPal capture ID (used for refunds and tracking)
+  paymentStatus      String? // PayPal capture status: COMPLETED, PENDING, REFUNDED, …
+  paidAt             DateTime?
+  printfulOrderId    BigInt?     @unique
+  printfulStatus     String?
+  printfulCosts      Json?
+  lastError          String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  items     OrderItem[]
+  shipments Shipment[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String
+  variantId   BigInt // Printful sync variant ID
+  productName String
+  variantName String?
+  imageUrl    String?
+  quantity    Int
+  unitPrice   Decimal @db.Decimal(10, 2)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model Shipment {
+  id             BigInt    @id // Printful shipment ID
+  orderId        String
+  carrier        String?
+  service        String?
+  trackingNumber String?
+  trackingUrl    String?
+  shippedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model ContactMessage {
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  orderNumber String?
+  message     String
+  handled     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([handled, createdAt])
+}
+
+/// Mika's journal, managed in Admin → Jurnal.
+model JournalArticle {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  title         String
+  category      String
+  excerpt       String
+  /// Plain text: a blank line starts a new paragraph, a line starting with "## " is a subheading.
+  body          String
+  coverSrc      String?
+  coverAlt      String   @default("")
+  coverKind     String   @default("photo") // photo | illustration
+  coverAi       Boolean  @default(true) // AI-generated or conceptual imagery (labelled on the site)
+  /// Printful sync product IDs of the products featured in the story.
+  productIds    String[] @default([])
+  videoPlatform String?
+  videoUrl      String?
+  published     Boolean  @default(false)
+  publishedAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([published, publishedAt])
+}
+
+/// Images uploaded in the admin panel, stored in the database so they survive redeploys.
+model Media {
+  id        String   @id @default(cuid())
+  filename  String
+  mimeType  String
+  size      Int
+  data      Bytes
+  createdAt DateTime @default(now())
+}

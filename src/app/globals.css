@@ -1,0 +1,183 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* ---------- MIKADAY design tokens ---------- */
+:root {
+  --background: #faf7f2; /* main background */
+  --foreground: #242424; /* primary text */
+  --card: #ffffff;
+  --card-foreground: #242424;
+  --popover: #ffffff;
+  --popover-foreground: #242424;
+  --primary: #b94716; /* white-text buttons (5.4:1 on white) */
+  --primary-hover: #96380f;
+  --primary-foreground: #ffffff;
+  --secondary: #f1ebe3; /* alternate section background */
+  --secondary-foreground: #242424;
+  --muted: #f1ebe3;
+  --muted-foreground: #655e57; /* secondary text */
+  --accent: #f1ebe3; /* hover surfaces (shadcn) */
+  --accent-foreground: #242424;
+  --brand: #e87932; /* decorative orange — never for text on light backgrounds */
+  --destructive: #b42318;
+  --success: #26734d;
+  --border: #ddd5cb; /* decorative dividers and card outlines */
+  --input: #8f857b; /* form control outlines: ≥3:1 on every background (WCAG 1.4.11) */
+  --ring: #b94716;
+  --radius: 0.5rem; /* buttons 8px; cards use rounded-2xl ≈ 14px */
+}
+
+@theme inline {
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-heading: var(--font-serif);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Brand & status colors (also used by the admin panel) */
+  --color-brand: var(--brand);
+  --color-brand-soft: #fbe9dc;
+  --color-ink: var(--foreground);
+  --color-ink-soft: #3d3934;
+  --color-paper: var(--background);
+  --color-line: var(--border);
+  --color-success: var(--success);
+  --color-success-soft: #e2f1e8;
+  --color-warning: #8a5300;
+  --color-warning-soft: #fbf0d9;
+  --color-danger: var(--destructive);
+  --color-danger-soft: #fbe6e4;
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+}
+
+/* ---------- Layout & typography utilities ---------- */
+@utility container-page {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 16px;
+  @media (width >= 48rem) {
+    padding-inline: 24px;
+  }
+  @media (width >= 64rem) {
+    padding-inline: 32px;
+  }
+}
+
+@utility text-display {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: clamp(2.25rem, 1.55rem + 2.9vw, 3.75rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+}
+
+@utility text-h1 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: clamp(2rem, 1.6rem + 1.7vw, 3rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+
+@utility text-h2 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: clamp(1.625rem, 1.35rem + 1.15vw, 2.25rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+@utility text-h3 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: clamp(1.25rem, 1.15rem + 0.4vw, 1.5rem);
+  line-height: 1.25;
+}
+
+@utility text-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+@utility text-lead {
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  line-height: 1.65;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground;
+    line-height: 1.6;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Long-form journal text */
+.prose-mika p + p {
+  margin-top: 1.25em;
+}
+.prose-mika h2 {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  line-height: 1.25;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+}
+
+/* Product descriptions from Printful use "•" bullets separated by new lines. */
+.prose-description {
+  white-space: pre-line;
+}
