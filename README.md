@@ -97,6 +97,23 @@ ganti implementasi adapter itu untuk menyambungkan CMS tanpa mengubah UI.
 - Target sentuh ≥ 44 px, fokus keyboard terlihat, drawer/dialog Radix (focus trap + Esc), `prefers-reduced-motion`.
 - Diverifikasi di 360 / 390 / 768 / 1024 / 1440 px: tanpa horizontal overflow, satu `<h1>` per halaman.
 
+## Deploy ke Vercel
+
+1. **Database**: Vercel → Storage → buat **Neon Postgres** dan hubungkan ke project
+   (otomatis mengisi `DATABASE_URL` pooled dan `DATABASE_URL_UNPOOLED` untuk migrasi).
+2. **Import** repo GitHub di Vercel. Build memakai script `vercel-build`
+   (`prisma generate && prisma migrate deploy && next build`) — tabel dibuat otomatis.
+3. **Environment variables**: isi semua variabel dari `.env.example` (kecuali `DATABASE_URL*` dari Neon).
+   `NEXT_PUBLIC_*` dibaca saat build — setelah mengubahnya, lakukan **Redeploy**.
+4. Setelah deploy pertama: Admin → Produk → **Sinkronkan dari Printful** → aktifkan produk;
+   Admin → Jurnal → **Impor artikel contoh**.
+5. **Domain**: Project → Settings → Domains → tambahkan `mikaday.com`, atur DNS sesuai instruksi Vercel,
+   ubah `NEXT_PUBLIC_SITE_URL=https://mikaday.com`, redeploy, lalu daftarkan webhook Printful (Admin → Pengaturan)
+   dan webhook PayPal (`https://mikaday.com/api/paypal/webhook`).
+
+Catatan: paket Vercel **Hobby hanya untuk penggunaan non-komersial** — toko online butuh paket **Pro**.
+Unggahan cover maks. 4 MB (batas body request Vercel 4,5 MB).
+
 ## Catatan lain
 
 - **Build butuh database** (katalog di-prerender). Jalankan `npm run db:migrate` sebelum `npm run build` saat deploy.

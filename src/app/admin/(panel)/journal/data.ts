@@ -1,14 +1,12 @@
 import "server-only";
-import { readdir } from "node:fs/promises";
-import path from "node:path";
+import { illustrations } from "@/content/media-library";
 import { db } from "@/lib/db";
 
 /** Images the editor can pick as a cover: site illustrations plus earlier uploads. */
 export async function getCoverLibrary() {
-  const files = await readdir(path.join(process.cwd(), "public", "images")).catch(() => [] as string[]);
   const uploads = await db.media.findMany({ select: { id: true, filename: true }, orderBy: { createdAt: "desc" }, take: 100 });
   return [
-    ...files.filter((f) => /\.(svg|jpe?g|png|webp)$/i.test(f)).map((f) => ({ src: `/images/${f}`, label: `Ilustrasi: ${f}` })),
+    ...illustrations.map((f) => ({ src: `/images/${f}`, label: `Ilustrasi: ${f}` })),
     ...uploads.map((m) => ({ src: `/media/${m.id}`, label: `Unggahan: ${m.filename}` })),
   ];
 }

@@ -16,8 +16,8 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    // Journal cover uploads (max 4 MB) go through a Server Action.
-    serverActions: { bodySizeLimit: "5mb" },
+    // Journal cover uploads (max 4 MB) go through a Server Action; Vercel caps request bodies at 4.5 MB.
+    serverActions: { bodySizeLimit: "4.5mb" },
   },
   async redirects() {
     // The storefront moved from /products to /shop; keep old links working.
