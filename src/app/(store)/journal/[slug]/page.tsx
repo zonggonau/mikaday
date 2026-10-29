@@ -51,7 +51,8 @@ async function Content({ params }: Pick<PageProps<"/journal/[slug]">, "params">)
           </p>
         </header>
 
-        <ImageSlot image={article.cover} aspect="16 / 9" priority sizes="(min-width: 1200px) 1136px, 100vw" className="mt-10" />
+        {/* Covers are mostly portrait photos: a narrower 4:3 frame keeps them sharp and shows more of the scene. */}
+        <ImageSlot image={article.cover} aspect="4 / 3" priority sizes="(min-width: 800px) 768px, 100vw" className="mx-auto mt-10 max-w-3xl" />
 
         <div className="mx-auto mt-12 max-w-[68ch]">
           <aside className="mb-10 flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center">
