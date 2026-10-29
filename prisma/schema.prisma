@@ -105,6 +105,7 @@ model Order {
 
   items     OrderItem[]
   shipments Shipment[]
+  emails    OrderEmail[]
 
   @@index([status])
   @@index([createdAt])
@@ -133,11 +134,36 @@ model Shipment {
   trackingNumber String?
   trackingUrl    String?
   shippedAt      DateTime?
+  deliveryStatus String? // Printful v2 delivery_status, e.g. in_transit, delivered
+  deliveredAt    DateTime?
   createdAt      DateTime  @default(now())
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
+}
+
+/// One row per customer email, so webhook retries never send the same message twice.
+model OrderEmail {
+  id         String    @id @default(cuid())
+  orderId    String
+  kind       String // order_confirmed | shipped | delivered
+  key        String    @unique // e.g. "shipped:123456" (kind + order or shipment ID)
+  shipmentId BigInt?
+  to         String
+  subject    String
+  status     String // SENDING | SENT | FAILED | SKIPPED
+  attempts   Int       @default(1)
+  error      String?
+  messageId  String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  sentAt     DateTime?
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([status])
 }
 
 model ContactMessage {

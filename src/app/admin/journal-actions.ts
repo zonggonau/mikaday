@@ -70,7 +70,7 @@ export async function saveArticle(articleId: string | null, _previous: SaveArtic
 
   // Cover: a new upload wins; otherwise keep the chosen library image (local paths only).
   let coverSrc = data.coverSrc || null;
-  if (coverSrc && !/^\/(images|media)\/[\w.-]+$/.test(coverSrc)) return { error: "Gambar cover tidak valid." };
+  if (coverSrc && !/^\/(images|media)\/(?:[\w-]+\/)?[\w-]+(?:\.\w+)?$/.test(coverSrc)) return { error: "Gambar cover tidak valid." };
   const file = formData.get("coverFile");
   if (file instanceof File && file.size > 0) {
     if (!IMAGE_TYPES.has(file.type)) return { error: "Cover harus JPG, PNG, atau WebP." };

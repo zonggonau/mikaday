@@ -12,9 +12,9 @@ export const articles: JournalArticle[] = [
     excerpt: "Coffee first, inbox later. The small routine that makes the rest of the day feel lighter.",
     publishedAt: "2026-10-26",
     cover: {
-      src: "/images/journal-slow-morning.svg",
-      kind: "illustration",
-      alt: "Illustration of a sunlit desk with a pour-over kettle, a sketchbook, and the black Mountain Sunset Mug.",
+      src: "/images/mika/mika-home-desk.jpg",
+      kind: "photo",
+      alt: "Mika at her sunny desk at home with a black mug, an open sketchbook, a laptop, and plants behind her.",
       brief: "Mika's desk in morning light — sketchbook open, pencils, the black Mountain Sunset Mug.",
       conceptual: true,
     },
@@ -36,10 +36,10 @@ export const articles: JournalArticle[] = [
     excerpt: "Three ridgelines, one low sun, and a river that took eleven tries. How the collection's illustration came together.",
     publishedAt: "2026-10-19",
     cover: {
-      src: "/images/journal-sketch.svg",
-      kind: "illustration",
-      alt: "Illustration of a sketchbook with pencil sketches of layered mountains, the finished Mountain Sunset artwork, and color swatches.",
-      brief: "Close-up of rough pencil sketches for the Mountain Sunset illustration, with orange color swatches.",
+      src: "/images/mika/mika-studio.jpg",
+      kind: "photo",
+      alt: "Mika in a linen blazer at a studio desk with a black mug, a sketchbook of color studies, and a mood board behind her.",
+      brief: "Mika at the studio with her sketchbook and color studies for the Mountain Sunset illustration.",
       conceptual: true,
     },
     body: [

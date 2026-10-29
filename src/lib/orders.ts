@@ -4,6 +4,7 @@ import type { OrderStatus } from "@/generated/prisma/enums";
 import type { ShippingAddress } from "./address";
 import { db } from "./db";
 import { env } from "./env";
+import { sendOrderEmail, sendOrderEmailLater } from "./order-emails";
 import { paypal } from "./paypal";
 import { printfulRegion } from "./regions";
 import {
@@ -161,7 +162,10 @@ export async function applyPrintfulOrder(
     },
   });
 
-  for (const shipment of newlyTracked) await sendTrackingToPayPal(updated, shipment);
+  for (const shipment of newlyTracked) {
+    await sendTrackingToPayPal(updated, shipment);
+    sendOrderEmailLater("shipped", order.id, BigInt(shipment.id));
+  }
   return updated;
 }
 
@@ -216,6 +220,79 @@ export async function cancelPrintfulOrder(orderId: string) {
 
 export async function refreshPrintfulOrder(orderId: string) {
   return applyPrintfulOrder(await printful.getOrder(await requirePrintfulId(orderId)), orderId);
+}
+
+// ---------- Scheduled checks (/api/cron/orders) ----------
+
+const DAY = 86_400_000;
+
+/** Safety net for missed webhooks: re-reads open orders from Printful (new shipments trigger emails). */
+export async function refreshOpenOrders() {
+  const orders = await db.order.findMany({
+    where: {
+      printfulOrderId: { not: null },
+      status: { in: ["RECEIVED", "PROCESSING", "ON_HOLD", "PARTIAL"] },
+      updatedAt: { lt: new Date(Date.now() - 60 * 60_000) },
+      createdAt: { gte: new Date(Date.now() - 60 * DAY) },
+    },
+    select: { id: true, invoiceNumber: true },
+    orderBy: { updatedAt: "asc" },
+    take: 25,
+  });
+  for (const order of orders) {
+    await refreshPrintfulOrder(order.id).catch((error) =>
+      console.error(`[cron] could not refresh ${order.invoiceNumber}`, error),
+    );
+  }
+  return { refreshed: orders.length };
+}
+
+/** Printful API v1 has no delivery event, so delivery is read from v2 shipments and emailed once. */
+export async function syncDeliveries() {
+  const orders = await db.order.findMany({
+    where: {
+      printfulOrderId: { not: null },
+      shipments: {
+        some: { deliveredAt: null, trackingNumber: { not: null }, createdAt: { gte: new Date(Date.now() - 60 * DAY) } },
+      },
+    },
+    select: { id: true, invoiceNumber: true, printfulOrderId: true, shipments: true },
+    take: 50,
+  });
+
+  let delivered = 0;
+  for (const order of orders) {
+    let remote;
+    try {
+      remote = await printful.getShipments(order.printfulOrderId!.toString());
+    } catch (error) {
+      console.error(`[cron] could not read shipments for ${order.invoiceNumber}`, error);
+      continue;
+    }
+    for (const shipment of order.shipments) {
+      if (shipment.deliveredAt || !shipment.trackingNumber) continue;
+      const match =
+        remote.find((r) => String(r.id) === shipment.id.toString()) ??
+        remote.find((r) => r.tracking_number != null && String(r.tracking_number) === shipment.trackingNumber);
+      if (!match) continue;
+      const deliveredAt = match.delivered_at
+        ? new Date(match.delivered_at)
+        : match.delivery_status === "delivered"
+          ? new Date()
+          : null;
+      await db.shipment.update({
+        where: { id: shipment.id },
+        data: { deliveryStatus: match.delivery_status ?? null, deliveredAt },
+      });
+      if (deliveredAt) {
+        delivered++;
+        await sendOrderEmail("delivered", order.id, shipment.id).catch((error) =>
+          console.error(`[cron] delivered email for ${order.invoiceNumber}`, error),
+        );
+      }
+    }
+  }
+  return { checked: orders.length, delivered };
 }
 
 // ---------- Customer order tracking ----------

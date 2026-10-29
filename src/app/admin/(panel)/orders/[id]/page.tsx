@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { Fragment, Suspense } from "react";
 import { ActionButton } from "@/components/admin/action-button";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { AdminLoading, Card, Notice, PageHeader } from "@/components/admin/ui";
@@ -10,9 +10,17 @@ import type { ShippingAddress } from "@/lib/address";
 import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { formatDateTime, formatMoney } from "@/lib/format";
-import { runOrderAction } from "../../../actions";
+import { ORDER_EMAIL_LABELS, type OrderEmailKind } from "@/lib/order-emails";
+import { runOrderAction, sendCustomerEmail } from "../../../actions";
 
 export const metadata: Metadata = { title: "Detail pesanan" };
+
+const EMAIL_STATUS: Record<string, { label: string; className: string }> = {
+  SENT: { label: "Terkirim", className: "text-success" },
+  SENDING: { label: "Mengirim…", className: "text-muted-foreground" },
+  FAILED: { label: "Gagal", className: "text-danger" },
+  SKIPPED: { label: "Tidak dikirim", className: "text-muted-foreground" },
+};
 
 const CANCELLABLE = new Set(["draft", "pending", "failed", "onhold"]);
 
@@ -21,7 +29,11 @@ async function OrderDetail({ params }: Pick<PageProps<"/admin/orders/[id]">, "pa
   const { id } = await params;
   const order = await db.order.findUnique({
     where: { id },
-    include: { items: true, shipments: { orderBy: { createdAt: "asc" } } },
+    include: {
+      items: true,
+      shipments: { orderBy: { createdAt: "asc" } },
+      emails: { orderBy: { createdAt: "asc" } },
+    },
   });
   if (!order) notFound();
 
@@ -189,6 +201,11 @@ async function OrderDetail({ params }: Pick<PageProps<"/admin/orders/[id]">, "pa
                       {s.trackingNumber ?? "Tanpa nomor resi"}
                       {s.shippedAt && ` · ${formatDateTime(s.shippedAt)}`}
                     </p>
+                    <p className={s.deliveredAt ? "text-success" : "text-muted-foreground"}>
+                      {s.deliveredAt
+                        ? `Sampai ${formatDateTime(s.deliveredAt)}`
+                        : `Belum sampai${s.deliveryStatus ? ` (${s.deliveryStatus})` : ""}`}
+                    </p>
                     {s.trackingUrl && (
                       <a href={s.trackingUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                         Lacak paket ↗
@@ -197,6 +214,49 @@ async function OrderDetail({ params }: Pick<PageProps<"/admin/orders/[id]">, "pa
                   </li>
                 ))}
               </ul>
+            )}
+          </Card>
+
+          <Card title="Email pelanggan">
+            {order.emails.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Belum ada email untuk pesanan ini.</p>
+            ) : (
+              <ul className="divide-y divide-line text-sm">
+                {order.emails.map((e) => (
+                  <li key={e.id} className="flex flex-wrap items-baseline justify-between gap-2 py-2.5">
+                    <div>
+                      <p className="font-medium">{ORDER_EMAIL_LABELS[e.kind as OrderEmailKind] ?? e.kind}</p>
+                      <p className="text-muted-foreground">
+                        {e.to} · {formatDateTime(e.sentAt ?? e.updatedAt)}
+                        {e.attempts > 1 && ` · ${e.attempts}× dicoba`}
+                      </p>
+                      {e.error && <p className="text-danger">{e.error}</p>}
+                    </div>
+                    <span className={`text-xs font-semibold ${EMAIL_STATUS[e.status]?.className ?? ""}`}>
+                      {EMAIL_STATUS[e.status]?.label ?? e.status}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {paid && (
+              <div className="mt-4 flex flex-wrap gap-2 border-t border-line pt-4">
+                <ActionButton action={sendCustomerEmail.bind(null, order.id, "order_confirmed", undefined)}>
+                  Kirim konfirmasi
+                </ActionButton>
+                {order.shipments.map((s, i) => (
+                  <Fragment key={s.id.toString()}>
+                    <ActionButton action={sendCustomerEmail.bind(null, order.id, "shipped", s.id.toString())}>
+                      Kirim info resi{order.shipments.length > 1 ? ` #${i + 1}` : ""}
+                    </ActionButton>
+                    {s.deliveredAt && (
+                      <ActionButton action={sendCustomerEmail.bind(null, order.id, "delivered", s.id.toString())}>
+                        Kirim info sampai{order.shipments.length > 1 ? ` #${i + 1}` : ""}
+                      </ActionButton>
+                    )}
+                  </Fragment>
+                ))}
+              </div>
             )}
           </Card>
         </div>

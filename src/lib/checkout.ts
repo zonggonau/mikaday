@@ -5,6 +5,7 @@ import { Prisma } from "@/generated/prisma/client";
 import type { ShippingAddress } from "./address";
 import { db } from "./db";
 import { env } from "./env";
+import { sendOrderEmailLater } from "./order-emails";
 import { cancelPrintfulOrder, submitOrderToPrintful } from "./orders";
 import { paypal, PayPalError, type PayPalCapture } from "./paypal";
 import { paypalRegion } from "./regions";
@@ -264,10 +265,13 @@ async function applyCapture(orderId: string, capture: PayPalCapture) {
           : `Captured ${capture.amount.value} ${capture.amount.currency_code}, expected ${order.total.toFixed(2)} ${order.currency}. Check before fulfilling.`,
       },
     });
-    if (completed && amountMatches && !updated.printfulOrderId) {
-      await submitOrderToPrintful(order.id).catch((error) =>
-        console.error(`[checkout] Printful submission failed for ${order.invoiceNumber}`, error),
-      );
+    if (completed && amountMatches) {
+      sendOrderEmailLater("order_confirmed", order.id);
+      if (!updated.printfulOrderId) {
+        await submitOrderToPrintful(order.id).catch((error) =>
+          console.error(`[checkout] Printful submission failed for ${order.invoiceNumber}`, error),
+        );
+      }
     }
     return updated;
   }

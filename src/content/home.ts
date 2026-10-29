@@ -10,24 +10,26 @@ export const hero: {
   headline: "Make room for the little things.",
   text: "Meet Mika, a virtual creator exploring thoughtful design, slow mornings, and everyday adventures. Discover original pieces inspired by her world.",
   image: {
-    src: "/images/hero.svg",
-    kind: "illustration",
-    alt: "Illustration of Mika, with a dark brown bob and amber-orange glasses, holding a black Mountain Sunset Mug in her workspace.",
-    brief: "Mika in her warm creative workspace, holding the black Mountain Sunset Mug.",
+    src: "/images/mika/mika-breakfast.jpg",
+    kind: "photo",
+    alt: "Mika, with a dark brown bob and amber-orange glasses, at a sunny kitchen table holding a black mug, with avocado toast and berries.",
+    brief: "Mika at breakfast in morning light, holding the black Mountain Sunset Mug.",
     conceptual: true,
+    position: "50% 40%",
   },
 };
 
 /** "Shop the Moment": a lifestyle scene and the real products that appear in it. */
 export const shopTheMoment: { title: string; text: string; image: ImageAsset; productIds: string[] } = {
   title: "Shop the moment",
-  text: "Mid-morning at Mika's desk: a fresh sketch, a playlist on low, and coffee in the mug that started a collection.",
+  text: "Late morning on the porch: the rain has just stopped, the garden smells green, and there's coffee in the mug that started a collection.",
   image: {
-    src: "/images/shop-the-moment.svg",
-    kind: "illustration",
-    alt: "Illustration of Mika's desk from above: an open sketchbook mid-sketch, a coffee, and the black Mountain Sunset Mug.",
-    brief: "Mika at her desk mid-sketch, the Mountain Sunset Mug in natural view.",
+    src: "/images/mika/mika-porch-coffee.jpg",
+    kind: "photo",
+    alt: "Mika in a cream sweater and black jeans sitting on a wooden porch bench, holding a black mug with both hands, surrounded by plants.",
+    brief: "Mika on the porch after the rain, the black Mountain Sunset Mug in her hands.",
     conceptual: true,
+    position: "50% 28%",
   },
   productIds: ["487047783"],
 };

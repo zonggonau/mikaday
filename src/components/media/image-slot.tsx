@@ -31,6 +31,7 @@ export function ImageSlot({
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : undefined}
           className="object-cover"
+          style={{ objectPosition: image.position ?? (image.kind === "illustration" ? undefined : "50% 25%") }}
         />
         {(image.kind === "illustration" || image.conceptual) && (
           <figcaption className="absolute bottom-3 left-3 rounded-md bg-card/90 px-2 py-1 text-xs font-medium text-foreground">

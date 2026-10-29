@@ -13,7 +13,10 @@ import {
 import { PRODUCTS_TAG } from "@/lib/catalog";
 import { refundOrder } from "@/lib/checkout";
 import { db } from "@/lib/db";
+import { orderConfirmedEmail } from "@/lib/email-templates";
 import { env } from "@/lib/env";
+import { sendMail, verifyMailer } from "@/lib/mailer";
+import { resendOrderEmail, type OrderEmailKind } from "@/lib/order-emails";
 import {
   cancelPrintfulOrder,
   confirmPrintfulOrder,
@@ -241,6 +244,48 @@ export async function setMessageHandled(messageId: string, handled: boolean): Pr
     await db.contactMessage.update({ where: { id: messageId }, data: { handled } });
     refresh();
     return { ok: true, message: handled ? "Ditandai selesai." : "Ditandai belum selesai." };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+// ---------- Customer emails ----------
+
+export async function sendCustomerEmail(orderId: string, kind: OrderEmailKind, shipmentId?: string): Promise<ActionResult> {
+  await requireAdmin();
+  try {
+    const result = await resendOrderEmail(kind, orderId, shipmentId ? BigInt(shipmentId) : null);
+    refresh();
+    return { ok: true, message: `Email terkirim ke ${result.to}.` };
+  } catch (error) {
+    refresh();
+    return fail(error);
+  }
+}
+
+/** Checks the SMTP login, then sends a sample order confirmation to the admin address. */
+export async function sendTestEmail(): Promise<ActionResult> {
+  await requireAdmin();
+  try {
+    await verifyMailer();
+    const product = await db.product.findFirst({
+      where: { published: true, deletedAt: null },
+      select: { name: true, title: true, thumbnailUrl: true, variants: { select: { retailPrice: true }, take: 1 } },
+    });
+    const price = Number(product?.variants[0]?.retailPrice ?? 25);
+    const sample = orderConfirmedEmail({
+      invoiceNumber: "ORD-1000",
+      customerName: "Mika Sample",
+      currency: site.currency,
+      subtotal: price,
+      shippingTotal: 5,
+      total: price + 5,
+      shippingMethodName: "Flat Rate",
+      address: { name: "Mika Sample", address1: "123 Example Street", city: "Los Angeles", state: "CA", zip: "90001", country: "US" },
+      items: [{ name: product?.title || product?.name || "Sample product", variant: null, quantity: 1, unitPrice: price, imageUrl: product?.thumbnailUrl ?? null }],
+    });
+    await sendMail({ to: env.adminEmail, ...sample, subject: `[Contoh] ${sample.subject}` });
+    return { ok: true, message: `SMTP OK — email contoh terkirim ke ${env.adminEmail}.` };
   } catch (error) {
     return fail(error);
   }

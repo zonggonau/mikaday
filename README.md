@@ -51,6 +51,23 @@ Artikel jurnal disimpan di database dan dikelola dari **/admin/journal**:
 - **Video cerita** (TikTok / Instagram / YouTube, https) → tombol "Watch this story on …".
 - Database baru kosong? Klik **Impor artikel contoh** untuk memasukkan 3 cerita bawaan (`src/content/journal.ts`).
 
+## Email ke pelanggan
+
+| Kapan | Email | Pemicu |
+| --- | --- | --- |
+| Pembayaran PayPal berhasil | Konfirmasi pesanan (item, total, alamat) | capture PayPal `COMPLETED` |
+| Paket dikirim | Kurir, nomor resi, tombol lacak | webhook Printful `package_shipped` |
+| Paket sampai | Tanggal diterima | cron `/api/cron/orders` membaca `delivered_at` dari Printful API v2 |
+
+- Isi `SMTP_*`, `EMAIL_FROM`, `EMAIL_REPLY_TO`, `CRON_SECRET` (lihat `.env.example`), lalu uji di Admin → Pengaturan →
+  **Tes SMTP & kirim email contoh**. Verifikasi domain pengirim (SPF + DKIM) di penyedia email agar tidak masuk spam.
+- Tiap email dicatat di tabel `OrderEmail` dengan kunci unik → webhook yang berulang tidak mengirim email ganda.
+  Riwayat & tombol kirim ulang ada di Admin → Pesanan → detail.
+- **Cron** (setiap 30 menit): cek status "sampai", baca ulang order terbuka bila webhook terlewat, ulangi email gagal.
+  - VPS: `/etc/cron.d/mikaday` menjalankan `/opt/mikaday/cron.sh` (membaca `CRON_SECRET` dari `.env`).
+  - Vercel: tambahkan Cron Job ke `/api/cron/orders` (Vercel mengirim header `Authorization: Bearer $CRON_SECRET` sendiri).
+- Status "sampai" bergantung pada data kurir di Printful; kurir tanpa pelacakan tidak memicu email ini.
+
 ## Konten lain (siap untuk SaCMS)
 
 Konten editorial lain ada di `src/content/` dan **hanya** dibaca halaman lewat adapter `src/lib/content.ts` —
@@ -84,7 +101,7 @@ ganti implementasi adapter itu untuk menyambungkan CMS tanpa mengubah UI.
 | Katalog, cari, filter, urut, detail produk, size guide | Foto Mika yang disetujui (saat ini ilustrasi SVG) |
 | Keranjang (localStorage), checkout PayPal sandbox | PayPal **live** + `PAYPAL_WEBHOOK_ID` setelah online |
 | Cek ongkir real-time, order otomatis ke Printful (draft) | Domain publik HTTPS untuk webhook Printful & PayPal |
-| Lacak pesanan, formulir kontak → Admin → Pesan | Email balasan otomatis (saat ini balas manual) |
+| Lacak pesanan, formulir kontak → Admin → Pesan | SMTP untuk email pelanggan (konfirmasi / dikirim / sampai) |
 | Admin produk/pesanan/refund | Kebijakan final (Shipping/Returns/Privacy/Terms masih draft) |
 | Konten via adapter, CMS jurnal di admin | Koneksi SaCMS untuk konten lain |
 | | Produk Mountain Sunset Tee/Tote/Hoodie (buat di Printful, lalu tambahkan ID-nya di `collections.ts`) |

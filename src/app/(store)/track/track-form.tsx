@@ -6,9 +6,10 @@ import { preservingSubmit } from "@/lib/use-preserving-form";
 import { formatDate, formatMoney } from "@/lib/format";
 import { trackOrder, type TrackedOrder, type TrackState } from "./actions";
 
-const STEPS = ["Order placed", "In production", "Shipped"];
+const STEPS = ["Order placed", "In production", "Shipped", "Delivered"];
 
-function progress(status: TrackedOrder["status"]) {
+function progress({ status, shipments }: TrackedOrder) {
+  if (status === "SHIPPED" && shipments.length > 0 && shipments.every((s) => s.deliveredAt)) return 3;
   switch (status) {
     case "PROCESSING":
     case "ON_HOLD":
@@ -41,7 +42,7 @@ function statusNote(status: TrackedOrder["status"]) {
 }
 
 function OrderResult({ order }: { order: TrackedOrder }) {
-  const step = progress(order.status);
+  const step = progress(order);
   const note = statusNote(order.status);
 
   return (
@@ -52,7 +53,7 @@ function OrderResult({ order }: { order: TrackedOrder }) {
       </div>
 
       {order.status !== "CANCELED" && order.status !== "REFUNDED" && (
-        <ol className="grid grid-cols-3 gap-2">
+        <ol className="grid grid-cols-4 gap-2">
           {STEPS.map((label, i) => (
             <li key={label}>
               <div className={`h-1.5 rounded-full ${i <= step ? "bg-primary" : "bg-line"}`} />
@@ -72,7 +73,11 @@ function OrderResult({ order }: { order: TrackedOrder }) {
                 <p className="font-medium">{[s.carrier, s.service].filter(Boolean).join(" · ") || "Shipment"}</p>
                 <p className="text-muted-foreground">
                   {s.trackingNumber ? `Tracking ${s.trackingNumber}` : "Tracking number pending"}
-                  {s.shippedAt ? ` · shipped ${formatDate(s.shippedAt)}` : ""}
+                  {s.deliveredAt
+                    ? ` · delivered ${formatDate(s.deliveredAt)}`
+                    : s.shippedAt
+                      ? ` · shipped ${formatDate(s.shippedAt)}`
+                      : ""}
                 </p>
               </div>
               {s.trackingUrl && (
@@ -117,7 +122,7 @@ function OrderResult({ order }: { order: TrackedOrder }) {
 const field =
   "h-11 w-full rounded-lg border border-input bg-card px-3 text-base outline-none focus-visible:ring-3 focus-visible:ring-ring/40 disabled:opacity-50 md:text-sm";
 
-export function TrackForm() {
+export function TrackForm({ defaultInvoice = "" }: { defaultInvoice?: string }) {
   const [state, formAction, pending] = useActionState<TrackState, FormData>(trackOrder, {});
 
   return (
@@ -125,7 +130,7 @@ export function TrackForm() {
       <form onSubmit={preservingSubmit(formAction)} className="grid grid-cols-1 gap-4 rounded-2xl border border-line bg-card p-6 sm:grid-cols-2">
         <label className="grid gap-1 text-sm font-medium">
           Order number
-          <input name="invoice" required placeholder="SNIP-1001" className={field} autoComplete="off" />
+          <input name="invoice" required placeholder="ORD-1001" defaultValue={defaultInvoice} className={field} autoComplete="off" />
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Email used at checkout

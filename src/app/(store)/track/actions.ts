@@ -19,6 +19,7 @@ export interface TrackedOrder {
     trackingNumber: string | null;
     trackingUrl: string | null;
     shippedAt: string | null;
+    deliveredAt: string | null;
   }[];
 }
 
@@ -59,6 +60,7 @@ export async function trackOrder(_previous: TrackState, formData: FormData): Pro
         trackingNumber: s.trackingNumber,
         trackingUrl: s.trackingUrl,
         shippedAt: s.shippedAt?.toISOString() ?? null,
+        deliveredAt: s.deliveredAt?.toISOString() ?? null,
       })),
     },
   };

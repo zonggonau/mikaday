@@ -1,12 +1,15 @@
 import "server-only";
-import { illustrations } from "@/content/media-library";
+import { siteImages } from "@/content/media-library";
 import { db } from "@/lib/db";
 
-/** Images the editor can pick as a cover: site illustrations plus earlier uploads. */
+/** Images the editor can pick as a cover: site photos and illustrations plus earlier uploads. */
 export async function getCoverLibrary() {
   const uploads = await db.media.findMany({ select: { id: true, filename: true }, orderBy: { createdAt: "desc" }, take: 100 });
   return [
-    ...illustrations.map((f) => ({ src: `/images/${f}`, label: `Ilustrasi: ${f}` })),
+    ...siteImages.map((img) => ({
+      src: `/images/${img.file}`,
+      label: `${img.kind === "photo" ? "Foto" : "Ilustrasi"}: ${img.file.replace(/^mika\//, "")}`,
+    })),
     ...uploads.map((m) => ({ src: `/media/${m.id}`, label: `Unggahan: ${m.filename}` })),
   ];
 }

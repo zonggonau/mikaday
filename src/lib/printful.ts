@@ -121,6 +121,14 @@ export interface PfShipment {
   reshipment: boolean;
 }
 
+/** GET /v2/orders/{id}/shipments (only the fields this app uses). */
+export interface PfShipmentV2 {
+  id: number;
+  tracking_number: string | number | null;
+  delivery_status: string | null; // e.g. "unknown", "delivered"
+  delivered_at: string | null;
+}
+
 export interface PfOrder {
   id: number;
   external_id: string | null;
@@ -158,11 +166,12 @@ type Envelope<T> = { code: number; result: T; paging?: { total: number; offset: 
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function request<T>(
-  path: string,
-  init: { method?: string; body?: unknown } = {},
-  attempt = 0,
-): Promise<Envelope<T>> {
+/** v1 endpoints wrap results as { code, result }. */
+function request<T>(path: string, init: { method?: string; body?: unknown } = {}) {
+  return call<Envelope<T>>(path, init);
+}
+
+async function call<R>(path: string, init: { method?: string; body?: unknown } = {}, attempt = 0): Promise<R> {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${env.printfulApiKey}`,
     "Content-Type": "application/json",
@@ -179,16 +188,17 @@ async function request<T>(
   if (res.status === 429 && attempt < MAX_RETRIES) {
     const retryAfter = Number(res.headers.get("retry-after")) || 2 ** attempt * 5;
     await sleep(retryAfter * 1000 + Math.floor(Math.random() * 500));
-    return request<T>(path, init, attempt + 1);
+    return call<R>(path, init, attempt + 1);
   }
 
   const json = (await res.json().catch(() => null)) as
-    | (Envelope<T> & { error?: { message?: string } })
+    | (R & { error?: { message?: string }; result?: unknown; detail?: string })
     | null;
 
   if (!res.ok || !json) {
     const message =
       json?.error?.message ||
+      json?.detail || // v2 errors (RFC 7807)
       (typeof json?.result === "string" ? json.result : null) ||
       `Printful API error (${res.status})`;
     throw new PrintfulError(message, res.status);
@@ -253,6 +263,11 @@ export const printful = {
 
   async cancelOrder(id: number | string) {
     return (await request<PfOrder>(`/orders/${id}`, { method: "DELETE" })).result;
+  },
+
+  /** API v2: unlike v1, shipments report whether (and when) they were delivered. */
+  async getShipments(orderId: number | string) {
+    return (await call<{ data: PfShipmentV2[] }>(`/v2/orders/${orderId}/shipments`)).data;
   },
 
   async getWebhooks() {

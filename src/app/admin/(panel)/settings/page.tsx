@@ -7,7 +7,7 @@ import { env } from "@/lib/env";
 import { paypal, PAYPAL_WEBHOOK_EVENTS } from "@/lib/paypal";
 import { printful, PRINTFUL_WEBHOOK_TYPES, type PfWebhookConfig } from "@/lib/printful";
 import { site } from "@/lib/site";
-import { registerPrintfulWebhook } from "../../actions";
+import { registerPrintfulWebhook, sendTestEmail } from "../../actions";
 
 export const metadata: Metadata = { title: "Pengaturan" };
 
@@ -88,6 +88,18 @@ async function Settings() {
       note: env.printfulAutoConfirm ? "true — order langsung diproduksi" : "false — order masuk sebagai draft, konfirmasi manual",
     },
     { label: "NEXT_PUBLIC_SITE_URL", ok: publicSite, note: publicSite ? site.url : `${site.url} — webhook butuh domain publik HTTPS` },
+    {
+      label: "SMTP_HOST / EMAIL_FROM",
+      ok: env.emailConfigured,
+      note: env.emailConfigured
+        ? `${env.smtp.host}:${env.smtp.port} · dari ${env.emailFrom}`
+        : "Belum diisi — email ke pelanggan tidak dikirim",
+    },
+    {
+      label: "CRON_SECRET",
+      ok: Boolean(env.cronSecret),
+      note: env.cronSecret ? "Terisi" : "Belum diisi — email \"paket sampai\" & pengiriman ulang email tidak berjalan",
+    },
   ];
 
   return (
@@ -132,6 +144,31 @@ async function Settings() {
               confirm={`Daftarkan ${expectedBase}?secret=… sebagai webhook Printful? Ini menggantikan webhook yang ada.`}
             >
               Daftarkan / perbarui webhook
+            </ActionButton>
+          </div>
+        </Card>
+
+        <Card title="Email pelanggan" className="xl:col-span-2">
+          <div className="space-y-4 text-sm">
+            <p className="text-muted-foreground">
+              Pelanggan otomatis menerima email saat <b>pembayaran berhasil</b>, saat <b>paket dikirim</b> (kurir, nomor resi,
+              link lacak), dan saat <b>paket sampai</b>. Status &quot;sampai&quot; dicek ke Printful setiap 30 menit lewat{" "}
+              <code>/api/cron/orders</code>. Setiap email hanya terkirim sekali; riwayatnya ada di halaman detail pesanan.
+            </p>
+            <ol className="list-decimal space-y-2 pl-5">
+              <li>
+                Isi <code>SMTP_HOST</code>, <code>SMTP_PORT</code>, <code>SMTP_USER</code>, <code>SMTP_PASS</code> dari penyedia email
+                (mis. Brevo, Resend, Zoho, Hostinger Mail) dan <code>EMAIL_FROM</code>, mis.{" "}
+                <code>{`${site.name} <orders@${site.url.replace(/^https?:\/\//, "")}>`}</code>.
+              </li>
+              <li>Verifikasi domain pengirim di penyedia email (record SPF & DKIM di DNS) agar email tidak masuk spam.</li>
+              <li>
+                Balasan pelanggan dikirim ke <code>EMAIL_REPLY_TO</code> (default: <code>NEXT_PUBLIC_SUPPORT_EMAIL</code>
+                {env.emailReplyTo ? <> — sekarang <b>{env.emailReplyTo}</b></> : <> — belum diisi, balasan ke alamat pengirim</>}).
+              </li>
+            </ol>
+            <ActionButton action={sendTestEmail} variant="primary">
+              Tes SMTP & kirim email contoh ke {env.adminEmail}
             </ActionButton>
           </div>
         </Card>

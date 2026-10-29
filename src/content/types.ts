@@ -13,6 +13,8 @@ export interface ImageAsset {
   conceptual?: boolean;
   /** "illustration" is labelled as such; photos keep the AI-generated label when conceptual. */
   kind?: "photo" | "illustration";
+  /** CSS object-position for the crop; photos default to the upper part, where faces usually are. */
+  position?: string;
   width?: number;
   height?: number;
 }
