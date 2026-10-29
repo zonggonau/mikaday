@@ -34,6 +34,8 @@ function loadSdk(clientId: string, currency: string) {
       components: "buttons",
       // Shows the "Debit or Credit Card" button so buyers without a PayPal account can pay.
       "enable-funding": "card",
+      // Pay Later (installments) is not offered by this store.
+      "disable-funding": "paylater",
     });
     const script = document.createElement("script");
     script.src = `https://www.paypal.com/sdk/js?${params}`;

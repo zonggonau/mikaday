@@ -6,6 +6,8 @@ export interface Country {
   code: string;
   name: string;
   states: { code: string; name: string }[];
+  /** Provinces PayPal requires where Printful has no state list (missing in responses cached before it existed). */
+  provinces?: { code: string; name: string }[];
 }
 
 let request: Promise<Country[]> | null = null;

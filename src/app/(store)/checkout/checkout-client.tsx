@@ -63,7 +63,9 @@ export function CheckoutClient({ paypalClientId, currency }: { paypalClientId: s
   const items: Item[] = lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity }));
   const active = quote?.key === quoteKey(items, customer) ? quote : null;
   const rate = active?.data.rates.find((r) => r.id === rateId) ?? null;
-  const states = countries?.find((c) => c.code === customer.country)?.states ?? [];
+  const country = countries?.find((c) => c.code === customer.country);
+  // Printful's states, or the provinces PayPal requires for this country (e.g. Indonesia).
+  const states = (country?.states.length ? country.states : country?.provinces) ?? [];
   const subtotal = active ? active.data.subtotal : cartSubtotal;
 
   const set = (key: keyof Customer) => (value: string) =>

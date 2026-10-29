@@ -7,7 +7,8 @@ import { db } from "./db";
 import { env } from "./env";
 import { cancelPrintfulOrder, submitOrderToPrintful } from "./orders";
 import { paypal, PayPalError, type PayPalCapture } from "./paypal";
-import { quoteShipping, type ShippingQuote } from "./shipping";
+import { paypalRegion } from "./regions";
+import { getCountries, quoteShipping, regionsOf, type ShippingQuote } from "./shipping";
 import { site } from "./site";
 
 export class CheckoutError extends Error {
@@ -32,7 +33,7 @@ export const customerSchema = z.object({
   address1: z.string().trim().min(3).max(200),
   address2: z.string().trim().max(200).default(""),
   city: z.string().trim().min(1).max(100),
-  state: z.string().trim().max(10).default(""),
+  state: z.string().trim().max(60).default(""),
   zip: z.string().trim().max(20).default(""),
   country: z.string().trim().length(2).toUpperCase(),
 });
@@ -133,6 +134,12 @@ export async function startCheckout(items: CartItemInput[], customer: CustomerIn
   }
   if (cart.lines.length === 0) throw new CheckoutError("Your cart is empty.");
 
+  // PayPal shows only a generic error page when a required province is missing or unknown.
+  const regions = regionsOf((await getCountries()).find((c) => c.code === customer.country));
+  if (regions.length > 0 && !regions.some((r) => r.code === customer.state)) {
+    throw new CheckoutError("Please choose a state / province.");
+  }
+
   const rates = await quoteShipping(
     shippingAddressOf(customer),
     cart.lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity })),
@@ -214,7 +221,7 @@ export async function startCheckout(items: CartItemInput[], customer: CustomerIn
         address1: customer.address1,
         address2: customer.address2,
         city: customer.city,
-        state: customer.state,
+        state: paypalRegion(customer.country, customer.state),
         zip: customer.zip,
         countryCode: customer.country,
       },

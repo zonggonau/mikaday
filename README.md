@@ -119,3 +119,5 @@ Unggahan cover maks. 4 MB (batas body request Vercel 4,5 MB).
 - **Build butuh database** (katalog di-prerender). Jalankan `npm run db:migrate` sebelum `npm run build` saat deploy.
 - Order dari PayPal **sandbox** selalu berhenti sebagai draft di Printful dan tidak bisa dikonfirmasi ke produksi.
 - `SYNC_WEBHOOK_SECRET` harus string acak, bukan API key Printful.
+- **Provinsi wajib PayPal** (ID, IT, MX, AR, IN, TH + konversi prefektur JP) ada di `src/lib/regions.ts`. Tanpa provinsi
+  yang dikenali, PayPal hanya menampilkan "Things don't appear to be working at the moment" setelah pembeli login.

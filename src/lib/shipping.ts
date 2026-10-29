@@ -2,6 +2,7 @@ import "server-only";
 import { cacheLife } from "next/cache";
 import { db } from "./db";
 import { printful, PrintfulError } from "./printful";
+import { PAYPAL_PROVINCES, printfulRegion } from "./regions";
 
 export interface ShippingAddress {
   countryCode: string;
@@ -37,7 +38,10 @@ export class ShippingError extends Error {
 export interface Country {
   code: string;
   name: string;
+  /** Printful's state list (US, CA, AU, …) — needed for shipping rates. */
   states: { code: string; name: string }[];
+  /** Provinces PayPal requires at checkout where Printful has no state list (e.g. Indonesia). */
+  provinces: { code: string; name: string }[];
 }
 
 /** Countries Printful ships to, with the states it requires (US, CA, AU, …). */
@@ -47,8 +51,17 @@ export async function getCountries(): Promise<Country[]> {
 
   const countries = await printful.getCountries();
   return countries
-    .map((c) => ({ code: c.code, name: c.name, states: c.states ?? [] }))
+    .map((c) => {
+      const states = c.states ?? [];
+      return { code: c.code, name: c.name, states, provinces: states.length ? [] : (PAYPAL_PROVINCES[c.code] ?? []) };
+    })
     .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** The state / province list a checkout address must pick from (empty when none is needed). */
+export function regionsOf(country: Pick<Country, "states" | "provinces"> | undefined) {
+  if (!country) return [];
+  return country.states.length ? country.states : (country.provinces ?? []);
 }
 
 /** Real-time rates from Printful for the given cart and destination. */
@@ -91,7 +104,7 @@ export async function quoteShipping(
     const rates = await printful.shippingRates({
       recipient: {
         country_code: countryCode,
-        state_code: address.stateCode?.trim().toUpperCase() || undefined,
+        state_code: printfulRegion(countryCode, address.stateCode?.trim()).state_code,
         city: address.city?.trim() || "",
         zip: address.zip?.trim() || undefined,
         address1: address.address1?.trim() || "",

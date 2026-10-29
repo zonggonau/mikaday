@@ -5,6 +5,7 @@ import type { ShippingAddress } from "./address";
 import { db } from "./db";
 import { env } from "./env";
 import { paypal } from "./paypal";
+import { printfulRegion } from "./regions";
 import {
   printful,
   PrintfulError,
@@ -45,11 +46,7 @@ function recipientFor(order: { customerName: string; email: string; phone: strin
     phone: a.phone || order.phone || undefined,
     email: order.email,
   };
-  if (state) {
-    if (/^[A-Za-z0-9]{1,3}$/.test(state)) recipient.state_code = state.toUpperCase();
-    else recipient.state_name = state;
-  }
-  return recipient;
+  return { ...recipient, ...printfulRegion(recipient.country_code, state) };
 }
 
 type OrderWithItems = Prisma.OrderGetPayload<{ include: { items: true } }>;
