@@ -212,3 +212,17 @@ model Media {
   data      Bytes
   createdAt DateTime @default(now())
 }
+
+/// SMTP settings edited in Admin → Settings (single row, id 1). Overrides the SMTP_* env vars.
+/// The password is encrypted with a key derived from AUTH_SECRET (src/lib/secret-box.ts).
+model MailSettings {
+  id            Int      @id @default(1)
+  host          String
+  port          Int
+  secure        Boolean
+  user          String
+  passEncrypted String?
+  from          String
+  replyTo       String?
+  updatedAt     DateTime @updatedAt
+}

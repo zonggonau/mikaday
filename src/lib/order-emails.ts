@@ -10,8 +10,7 @@ import {
   type EmailOrder,
   type RenderedEmail,
 } from "./email-templates";
-import { env } from "./env";
-import { sendMail } from "./mailer";
+import { isMailConfigured, sendMail } from "./mailer";
 
 export type OrderEmailKind = "order_confirmed" | "shipped" | "delivered";
 
@@ -89,6 +88,7 @@ async function deliver(id: string, message: Awaited<ReturnType<typeof render>>) 
  */
 export async function sendOrderEmail(kind: OrderEmailKind, orderId: string, shipmentId?: bigint | null) {
   const message = await render(kind, orderId, shipmentId);
+  const configured = await isMailConfigured();
   let row;
   try {
     row = await db.orderEmail.create({
@@ -99,8 +99,8 @@ export async function sendOrderEmail(kind: OrderEmailKind, orderId: string, ship
         shipmentId: shipmentId ?? null,
         to: message.to,
         subject: message.subject,
-        status: env.emailConfigured ? "SENDING" : "SKIPPED",
-        error: env.emailConfigured ? null : "Email belum dikonfigurasi (SMTP_HOST / EMAIL_FROM).",
+        status: configured ? "SENDING" : "SKIPPED",
+        error: configured ? null : "Email belum dikonfigurasi (Admin → Pengaturan → Email).",
       },
     });
   } catch (error) {
@@ -123,7 +123,7 @@ export function sendOrderEmailLater(kind: OrderEmailKind, orderId: string, shipm
 
 /** Admin: send (again) now, whatever happened before. Throws when sending fails. */
 export async function resendOrderEmail(kind: OrderEmailKind, orderId: string, shipmentId?: bigint | null) {
-  if (!env.emailConfigured) throw new Error("Email belum dikonfigurasi (SMTP_HOST / EMAIL_FROM).");
+  if (!(await isMailConfigured())) throw new Error("Email belum dikonfigurasi (Admin → Pengaturan → Email).");
   const message = await render(kind, orderId, shipmentId);
   const key = keyFor(kind, orderId, shipmentId);
   const row = await db.orderEmail.upsert({
@@ -138,7 +138,7 @@ export async function resendOrderEmail(kind: OrderEmailKind, orderId: string, sh
 
 /** Cron: retry failed sends (and ones interrupted mid-send) a few times. */
 export async function retryFailedEmails() {
-  if (!env.emailConfigured) return { retried: 0, sent: 0 };
+  if (!(await isMailConfigured())) return { retried: 0, sent: 0 };
   const now = Date.now();
   const rows = await db.orderEmail.findMany({
     where: {

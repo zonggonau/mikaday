@@ -1,18 +1,30 @@
 import type { Metadata } from "next";
 import { AiBadge } from "@/components/brand/ai-badge";
 import { JournalCard } from "@/components/journal/journal-card";
+import { JsonLd } from "@/components/seo/json-ld";
 import { getArticles, getMikaProfile } from "@/lib/content";
+import { blogJsonLd, breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Journal",
-  description: "Everyday stories from Mika's world — slow mornings, design notes, and small adventures.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Journal: Stories from Mika's Everyday",
+  description: "Slow mornings, design notes, and small adventures from Mika's world, plus the MIKADAY pieces that show up along the way.",
+  path: "/journal",
+});
 
 export default async function JournalPage() {
   const [articles, mika] = await Promise.all([getArticles(), getMikaProfile()]);
 
   return (
     <div className="container-page py-12 lg:py-16">
+      <JsonLd
+        data={[
+          blogJsonLd(articles),
+          breadcrumbJsonLd([
+            ["Home", "/"],
+            ["Journal", "/journal"],
+          ]),
+        ]}
+      />
       <header className="mb-12 max-w-2xl">
         <p className="text-eyebrow text-primary">Mika&apos;s journal</p>
         <h1 className="mt-2 text-h1">Notes from the everyday</h1>

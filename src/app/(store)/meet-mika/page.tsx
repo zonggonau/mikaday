@@ -9,11 +9,14 @@ import { ProductGrid } from "@/components/product/product-grid";
 import { Button } from "@/components/ui/button";
 import { getProductsByIds } from "@/lib/catalog";
 import { getArticles, getCollections, getMikaProfile } from "@/lib/content";
+import { MEET_MIKA_OG_IMAGE, pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Meet Mika",
-  description: "Meet Mika, the AI virtual creator whose fictional everyday world inspires MIKADAY's original designs.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Meet Mika, the AI Virtual Creator",
+  description: "Meet Mika, the AI virtual creator behind MIKADAY: slow mornings, sketchbooks, and weekend adventures that inspire our original designs.",
+  path: "/meet-mika",
+  image: MEET_MIKA_OG_IMAGE,
+});
 
 export default async function MeetMikaPage() {
   const [mika, articles, collections] = await Promise.all([getMikaProfile(), getArticles(), getCollections()]);

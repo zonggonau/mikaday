@@ -39,9 +39,9 @@ export const mika: MikaProfile = {
     position: "50% 30%",
   },
   workspace: {
-    src: "/images/mika/mika-breakfast.jpg",
+    src: "/images/mika/mika-breakfast-mug.jpg",
     kind: "photo",
-    alt: "Mika at her kitchen table in morning light, resting her chin on her hand with coffee in a black mug.",
+    alt: "Mika at her kitchen table in morning light, resting her chin on her hand with coffee in the black Mountain Sunset Mug.",
     brief: "A slow morning in Mika's world: breakfast, sunlight, and the black Mountain Sunset Mug.",
     conceptual: true,
     position: "50% 24%",

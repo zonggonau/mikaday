@@ -1,19 +1,31 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { JsonLd } from "@/components/seo/json-ld";
 import { Button } from "@/components/ui/button";
 import { getFaq } from "@/lib/content";
+import { breadcrumbJsonLd, faqJsonLd, pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "FAQ",
-  description: "Answers about Mika, our products, shipping, payment, and orders.",
-};
+  description: "Answers about Mika, MIKADAY products and printing, shipping, paying with PayPal or a card, and tracking your order.",
+  path: "/faq",
+});
 
 export default async function FaqPage() {
   const faq = await getFaq();
 
   return (
     <div className="container-page py-12 lg:py-16">
+      <JsonLd
+        data={[
+          faqJsonLd(faq),
+          breadcrumbJsonLd([
+            ["Home", "/"],
+            ["FAQ", "/faq"],
+          ]),
+        ]}
+      />
       <div className="mx-auto max-w-3xl">
         <p className="text-eyebrow text-primary">Help</p>
         <h1 className="mt-2 text-h1">Frequently asked questions</h1>

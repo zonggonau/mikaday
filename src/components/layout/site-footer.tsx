@@ -1,5 +1,6 @@
 import { cacheLife } from "next/cache";
 import Link from "next/link";
+import { CookieSettingsButton } from "@/components/analytics";
 import { getMikaProfile } from "@/lib/content";
 import { site } from "@/lib/site";
 import { STORE_CATEGORIES } from "@/lib/store-categories";
@@ -60,7 +61,10 @@ export async function SiteFooter() {
           <p>
             © <CopyrightYear /> {site.name}. Original designs. All prices in {site.currency}.
           </p>
-          <p>Mika is fictional. MIKADAY products are real.</p>
+          <p className="flex flex-wrap items-center gap-x-4">
+            <span>Mika is fictional. MIKADAY products are real.</span>
+            {site.gaMeasurementId && <CookieSettingsButton />}
+          </p>
         </div>
       </div>
     </footer>

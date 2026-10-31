@@ -15,7 +15,7 @@ import { refundOrder } from "@/lib/checkout";
 import { db } from "@/lib/db";
 import { orderConfirmedEmail } from "@/lib/email-templates";
 import { env } from "@/lib/env";
-import { sendMail, verifyMailer } from "@/lib/mailer";
+import { explainMailError, sendMail, verifyMailer } from "@/lib/mailer";
 import { resendOrderEmail, type OrderEmailKind } from "@/lib/order-emails";
 import {
   cancelPrintfulOrder,
@@ -26,6 +26,7 @@ import {
 import { printful, PRINTFUL_WEBHOOK_TYPES } from "@/lib/printful";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { site } from "@/lib/site";
+import { seal } from "@/lib/secret-box";
 import { syncProductDetails, syncProductList, syncPublishedProductDetails } from "@/lib/sync";
 
 export interface ActionResult {
@@ -285,8 +286,89 @@ export async function sendTestEmail(): Promise<ActionResult> {
       items: [{ name: product?.title || product?.name || "Sample product", variant: null, quantity: 1, unitPrice: price, imageUrl: product?.thumbnailUrl ?? null }],
     });
     await sendMail({ to: env.adminEmail, ...sample, subject: `[Contoh] ${sample.subject}` });
-    return { ok: true, message: `SMTP OK — email contoh terkirim ke ${env.adminEmail}.` };
+    return { ok: true, message: `SMTP OK — email contoh terkirim ke ${env.adminEmail}. Cek juga folder Spam.` };
   } catch (error) {
-    return fail(error);
+    return { ok: false, message: explainMailError(error) };
   }
+}
+
+// ---------- Email (SMTP) settings ----------
+
+const MAIL_FIELDS: Record<string, string> = {
+  host: "Host SMTP",
+  port: "Port",
+  security: "Keamanan",
+  user: "Username",
+  pass: "Password",
+  fromName: "Nama pengirim",
+  fromEmail: "Email pengirim",
+  replyTo: "Email untuk balasan",
+};
+
+const mailSettingsSchema = z.object({
+  host: z.string().trim().min(3).max(200).regex(/^[a-z0-9.-]+$/i),
+  port: z.coerce.number().int().min(1).max(65535),
+  security: z.enum(["ssl", "starttls"]),
+  user: z.string().trim().max(254),
+  pass: z.string().max(500),
+  fromName: z.string().trim().max(80),
+  fromEmail: z.email().max(254),
+  replyTo: z.union([z.literal(""), z.email().max(254)]),
+});
+
+export async function saveMailSettings(_previous: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = mailSettingsSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    const field = String(parsed.error.issues[0]?.path[0] ?? "");
+    return { ok: false, message: `${MAIL_FIELDS[field] ?? "Data"} tidak valid.` };
+  }
+  const data = parsed.data;
+  const gmail = /(^|\.)(gmail|googlemail)\.com$/i.test(data.host);
+  // Google shows App Passwords in groups of four; the spaces are not part of it.
+  const pass = gmail ? data.pass.replace(/\s+/g, "") : data.pass;
+
+  const existing = await db.mailSettings.findUnique({ where: { id: 1 }, select: { passEncrypted: true } });
+  if (data.user && !pass && !existing?.passEncrypted) {
+    return { ok: false, message: gmail ? "Isi App Password Gmail (16 karakter)." : "Isi password SMTP." };
+  }
+  const name = data.fromName.replace(/["<>]/g, "");
+  const values = {
+    host: data.host.toLowerCase(),
+    port: data.port,
+    secure: data.security === "ssl",
+    user: data.user,
+    from: name ? `${name} <${data.fromEmail}>` : data.fromEmail,
+    replyTo: data.replyTo || null,
+    // An empty password field keeps the stored one.
+    ...(pass ? { passEncrypted: seal(pass) } : {}),
+  };
+  await db.mailSettings.upsert({ where: { id: 1 }, create: { id: 1, ...values }, update: values });
+  refresh();
+
+  const warning =
+    gmail && data.user && data.fromEmail.toLowerCase() !== data.user.toLowerCase()
+      ? ` Perhatian: dengan Gmail, email pengirim harus sama dengan username (${data.user}) kecuali sudah didaftarkan sebagai alias "Send mail as" di Gmail.`
+      : "";
+  return { ok: true, message: `Pengaturan email disimpan.${warning} Klik "Tes koneksi" untuk memeriksa login.` };
+}
+
+export async function testMailConnection(): Promise<ActionResult> {
+  await requireAdmin();
+  try {
+    const config = await verifyMailer();
+    return { ok: true, message: `Login SMTP berhasil: ${config.user || "(tanpa login)"} di ${config.host}:${config.port}. Tidak ada email yang dikirim.` };
+  } catch (error) {
+    return { ok: false, message: explainMailError(error) };
+  }
+}
+
+export async function deleteMailSettings(): Promise<ActionResult> {
+  await requireAdmin();
+  await db.mailSettings.deleteMany({ where: { id: 1 } });
+  refresh();
+  return {
+    ok: true,
+    message: env.emailConfigured ? "Pengaturan dihapus — kembali memakai SMTP dari .env." : "Pengaturan dihapus — email ke pelanggan tidak dikirim.",
+  };
 }

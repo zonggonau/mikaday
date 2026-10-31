@@ -4,11 +4,13 @@ import { notFound } from "next/navigation";
 import { PolicyView } from "@/components/policy-view";
 import { ShippingEstimator } from "@/components/shipping-estimator";
 import { getPolicy } from "@/lib/content";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Shipping",
-  description: "How MIKADAY orders are produced and shipped, and live shipping rates for your cart and destination.",
-};
+  description: "How MIKADAY orders are printed and shipped, with live shipping rates for your cart and destination.",
+  path: "/shipping",
+});
 
 export default async function ShippingPage() {
   const policy = await getPolicy("shipping");

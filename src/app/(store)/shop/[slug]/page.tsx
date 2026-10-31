@@ -7,49 +7,38 @@ import { JournalCard } from "@/components/journal/journal-card";
 import { ProductGrid } from "@/components/product/product-grid";
 import { ProductView } from "@/components/product/product-view";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { JsonLd } from "@/components/seo/json-ld";
 import { getProductBySlug, getPublishedProducts, type ProductDetail } from "@/lib/catalog";
 import { getArticlesForProduct, getCollectionsForProduct } from "@/lib/content";
-import { site } from "@/lib/site";
+import { breadcrumbJsonLd, excerpt, pageMetadata, productJsonLd } from "@/lib/seo";
 import { getSizeGuide } from "@/lib/size-guide";
-
-function excerpt(text: string | null, length = 160) {
-  if (!text) return site.description;
-  const flat = text.replace(/\s+/g, " ").trim();
-  return flat.length > length ? `${flat.slice(0, length - 1)}…` : flat;
-}
 
 export async function generateMetadata({ params }: PageProps<"/shop/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return { title: "Product not found", robots: { index: false } };
-  return {
+  return pageMetadata({
     title: product.title,
     description: excerpt(product.description),
-    alternates: { canonical: `/shop/${product.slug}` },
-    openGraph: { title: product.title, description: excerpt(product.description), images: product.imageUrl ? [product.imageUrl] : undefined },
-  };
+    path: `/shop/${product.slug}`,
+    image: product.imageUrl ? { url: product.imageUrl, alt: product.title } : undefined,
+  });
 }
 
 /** Structured data from verified store data only: name, image, price, availability. */
 function ProductJsonLd({ product }: { product: ProductDetail }) {
-  const data = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.title,
-    image: product.images.map((i) => i.url),
-    description: excerpt(product.description, 500),
-    brand: { "@type": "Brand", name: site.name },
-    offers: {
-      "@type": "AggregateOffer",
-      priceCurrency: product.currency,
-      lowPrice: product.minPrice,
-      highPrice: product.maxPrice,
-      offerCount: product.variants.length,
-      availability: product.variants.some((v) => v.available) ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      url: `${site.url}/shop/${product.slug}`,
-    },
-  };
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
+  return (
+    <JsonLd
+      data={[
+        productJsonLd(product),
+        breadcrumbJsonLd([
+          ["Home", "/"],
+          ["Shop", "/shop"],
+          [product.title, `/shop/${product.slug}`],
+        ]),
+      ]}
+    />
+  );
 }
 
 async function ProductContent({ params }: Pick<PageProps<"/shop/[slug]">, "params">) {

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { CollectionBanner } from "@/components/collection/collection-banner";
 import { getCollections } from "@/lib/content";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Collections",
-  description: "Original MIKADAY collections, each built around an illustration from Mika's world.",
-};
+  description: "Explore MIKADAY collections, each built around an original illustration from Mika's world, starting with Mountain Sunset.",
+  path: "/collections",
+});
 
 export default async function CollectionsPage() {
   const collections = await getCollections();

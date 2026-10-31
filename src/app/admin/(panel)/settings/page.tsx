@@ -3,11 +3,14 @@ import { Suspense } from "react";
 import { ActionButton } from "@/components/admin/action-button";
 import { AdminLoading, Card, Notice, PageHeader } from "@/components/admin/ui";
 import { requireAdmin } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { paypal, PAYPAL_WEBHOOK_EVENTS } from "@/lib/paypal";
 import { printful, PRINTFUL_WEBHOOK_TYPES, type PfWebhookConfig } from "@/lib/printful";
 import { site } from "@/lib/site";
-import { registerPrintfulWebhook, sendTestEmail } from "../../actions";
+import { formatDateTime } from "@/lib/format";
+import { deleteMailSettings, registerPrintfulWebhook, saveMailSettings, sendTestEmail, testMailConnection } from "../../actions";
+import { EmailSettingsForm, type EmailSettingsDefaults } from "./email-settings-form";
 
 export const metadata: Metadata = { title: "Pengaturan" };
 
@@ -35,6 +38,32 @@ async function Settings() {
   await requireAdmin();
 
   const errorText = (error: unknown, fallback: string) => (error instanceof Error ? error.message : fallback);
+  const mail = await db.mailSettings.findUnique({ where: { id: 1 } });
+  const mailSource = mail ? "admin" : env.emailConfigured ? "env" : null;
+  const parsedFrom = (mail?.from ?? env.emailFrom).match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
+  // Never sent to the browser: the stored password, only whether one exists.
+  const mailDefaults: EmailSettingsDefaults = mail
+    ? {
+        host: mail.host,
+        port: mail.port,
+        security: mail.secure ? "ssl" : "starttls",
+        user: mail.user,
+        hasPassword: Boolean(mail.passEncrypted),
+        fromName: parsedFrom?.[1] ?? "",
+        fromEmail: parsedFrom?.[2] ?? mail.from,
+        replyTo: mail.replyTo ?? "",
+      }
+    : {
+        host: env.smtp.host || "smtp.gmail.com",
+        port: env.smtp.host ? env.smtp.port : 465,
+        security: !env.smtp.host || env.smtp.secure ? "ssl" : "starttls",
+        user: env.smtp.user,
+        hasPassword: false,
+        fromName: parsedFrom?.[1] ?? site.name,
+        fromEmail: parsedFrom?.[2] ?? env.emailFrom,
+        replyTo: process.env.EMAIL_REPLY_TO ?? "",
+      };
+
   const [webhookResult, paypalResult] = await Promise.allSettled([
     printful.getWebhooks(),
     env.paypalConfigured ? paypal.ping() : Promise.resolve(),
@@ -89,11 +118,14 @@ async function Settings() {
     },
     { label: "NEXT_PUBLIC_SITE_URL", ok: publicSite, note: publicSite ? site.url : `${site.url} — webhook butuh domain publik HTTPS` },
     {
-      label: "SMTP_HOST / EMAIL_FROM",
-      ok: env.emailConfigured,
-      note: env.emailConfigured
-        ? `${env.smtp.host}:${env.smtp.port} · dari ${env.emailFrom}`
-        : "Belum diisi — email ke pelanggan tidak dikirim",
+      label: "Email pelanggan (SMTP)",
+      ok: Boolean(mailSource),
+      note:
+        mailSource === "admin"
+          ? `${mail!.host}:${mail!.port} · dari ${mail!.from} (diatur di bawah)`
+          : mailSource === "env"
+            ? `${env.smtp.host}:${env.smtp.port} · dari ${env.emailFrom} (dari .env)`
+            : "Belum diatur — email ke pelanggan tidak dikirim",
     },
     {
       label: "CRON_SECRET",
@@ -155,21 +187,29 @@ async function Settings() {
               link lacak), dan saat <b>paket sampai</b>. Status &quot;sampai&quot; dicek ke Printful setiap 30 menit lewat{" "}
               <code>/api/cron/orders</code>. Setiap email hanya terkirim sekali; riwayatnya ada di halaman detail pesanan.
             </p>
-            <ol className="list-decimal space-y-2 pl-5">
-              <li>
-                Isi <code>SMTP_HOST</code>, <code>SMTP_PORT</code>, <code>SMTP_USER</code>, <code>SMTP_PASS</code> dari penyedia email
-                (mis. Brevo, Resend, Zoho, Hostinger Mail) dan <code>EMAIL_FROM</code>, mis.{" "}
-                <code>{`${site.name} <orders@${site.url.replace(/^https?:\/\//, "")}>`}</code>.
-              </li>
-              <li>Verifikasi domain pengirim di penyedia email (record SPF & DKIM di DNS) agar email tidak masuk spam.</li>
-              <li>
-                Balasan pelanggan dikirim ke <code>EMAIL_REPLY_TO</code> (default: <code>NEXT_PUBLIC_SUPPORT_EMAIL</code>
-                {env.emailReplyTo ? <> — sekarang <b>{env.emailReplyTo}</b></> : <> — belum diisi, balasan ke alamat pengirim</>}).
-              </li>
-            </ol>
-            <ActionButton action={sendTestEmail} variant="primary">
-              Tes SMTP & kirim email contoh ke {env.adminEmail}
-            </ActionButton>
+            {mailSource === "admin" ? (
+              <Notice tone="success">Email aktif — memakai pengaturan di bawah (diperbarui {formatDateTime(mail!.updatedAt)}).</Notice>
+            ) : mailSource === "env" ? (
+              <Notice tone="info">
+                Email aktif — memakai <code>SMTP_*</code> dari <code>.env</code>. Simpan form di bawah untuk mengelolanya dari sini.
+              </Notice>
+            ) : (
+              <Notice>Email belum aktif. Isi pengaturan SMTP di bawah, simpan, lalu klik &quot;Tes koneksi&quot;.</Notice>
+            )}
+            <EmailSettingsForm action={saveMailSettings} defaults={mailDefaults} />
+            {mailSource && (
+              <div className="flex flex-wrap items-start gap-3 border-t border-line pt-4">
+                <ActionButton action={testMailConnection}>Tes koneksi (tanpa kirim)</ActionButton>
+                <ActionButton action={sendTestEmail} variant="primary">
+                  Kirim email contoh ke {env.adminEmail}
+                </ActionButton>
+                {mailSource === "admin" && (
+                  <ActionButton action={deleteMailSettings} variant="danger" confirm="Hapus pengaturan email yang tersimpan?">
+                    Hapus pengaturan
+                  </ActionButton>
+                )}
+              </div>
+            )}
           </div>
         </Card>
 

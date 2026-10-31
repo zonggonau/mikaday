@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { pageMetadata } from "@/lib/seo";
 import { TrackForm } from "./track-form";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Track your order",
   description: "Check the production and shipping status of your order.",
-};
+  path: "/track",
+  noindex: true, // personal order lookups; also disallowed in robots.txt
+});
 
 /** Links in order emails carry ?order=ORD-…; the email address is never put in the URL. */
 async function PrefilledTrackForm({ searchParams }: Pick<PageProps<"/track">, "searchParams">) {

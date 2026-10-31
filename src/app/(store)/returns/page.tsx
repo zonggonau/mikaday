@@ -2,8 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PolicyView } from "@/components/policy-view";
 import { getPolicy } from "@/lib/content";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Returns & Exchanges" };
+export const metadata: Metadata = pageMetadata({
+  title: "Returns & Exchanges",
+  description: "How returns, exchanges, and damaged or misprinted items are handled for MIKADAY orders.",
+  path: "/returns",
+});
 
 export default async function ReturnsPage() {
   const policy = await getPolicy("returns");

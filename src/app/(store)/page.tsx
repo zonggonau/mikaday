@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { AiBadge } from "@/components/brand/ai-badge";
 import { CollectionBanner } from "@/components/collection/collection-banner";
@@ -8,9 +9,19 @@ import { ShopTheMoment } from "@/components/home/shop-the-moment";
 import { JournalCard } from "@/components/journal/journal-card";
 import { ImageSlot } from "@/components/media/image-slot";
 import { ProductGrid } from "@/components/product/product-grid";
+import { JsonLd } from "@/components/seo/json-ld";
 import { Button } from "@/components/ui/button";
 import { getProductsByIds, getPublishedProducts } from "@/lib/catalog";
 import { getArticles, getCollections, getHomeContent, getMikaProfile } from "@/lib/content";
+import { organizationJsonLd, pageMetadata, websiteJsonLd } from "@/lib/seo";
+import { site } from "@/lib/site";
+
+export const metadata: Metadata = pageMetadata({
+  title: { absolute: `${site.name} — Original Mugs & Everyday Designs from Mika's World` },
+  description:
+    "Original MIKADAY designs inspired by Mika, an AI virtual creator, starting with the Mountain Sunset Mug. Printed to order and shipped internationally.",
+  path: "/",
+});
 
 async function EverydayFavorites() {
   const products = await getPublishedProducts();
@@ -58,6 +69,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
       {/* 1. Hero */}
       <section aria-labelledby="hero-title" className="container-page grid grid-cols-1 items-center gap-10 pt-10 pb-16 lg:grid-cols-2 lg:gap-16 lg:pt-16 lg:pb-24">
         <div className="flex flex-col items-start gap-6">

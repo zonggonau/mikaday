@@ -6,10 +6,10 @@
 export const siteImages: { file: string; kind: "photo" | "illustration" }[] = [
   // AI-generated photos of Mika (labelled "AI-generated" on the site)
   { file: "mika/mika-portrait.jpg", kind: "photo" },
-  { file: "mika/mika-breakfast.jpg", kind: "photo" },
-  { file: "mika/mika-home-desk.jpg", kind: "photo" },
-  { file: "mika/mika-studio.jpg", kind: "photo" },
-  { file: "mika/mika-porch-coffee.jpg", kind: "photo" },
+  { file: "mika/mika-breakfast-mug.jpg", kind: "photo" },
+  { file: "mika/mika-home-desk-mug.jpg", kind: "photo" },
+  { file: "mika/mika-studio-mug.jpg", kind: "photo" },
+  { file: "mika/mika-porch-mug.jpg", kind: "photo" },
   { file: "mika/mika-profile-left.jpg", kind: "photo" },
   { file: "mika/mika-profile-right.jpg", kind: "photo" },
   // Original illustrations

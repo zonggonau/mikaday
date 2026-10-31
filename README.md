@@ -59,14 +59,32 @@ Artikel jurnal disimpan di database dan dikelola dari **/admin/journal**:
 | Paket dikirim | Kurir, nomor resi, tombol lacak | webhook Printful `package_shipped` |
 | Paket sampai | Tanggal diterima | cron `/api/cron/orders` membaca `delivered_at` dari Printful API v2 |
 
-- Isi `SMTP_*`, `EMAIL_FROM`, `EMAIL_REPLY_TO`, `CRON_SECRET` (lihat `.env.example`), lalu uji di Admin → Pengaturan →
-  **Tes SMTP & kirim email contoh**. Verifikasi domain pengirim (SPF + DKIM) di penyedia email agar tidak masuk spam.
+- **Atur SMTP di Admin → Pengaturan → Email pelanggan** (preset Gmail, Brevo, Zoho, Hostinger, atau kustom), lalu
+  **Tes koneksi** dan **Kirim email contoh**. Password disimpan terenkripsi (AES-256-GCM, kunci dari `AUTH_SECRET` —
+  mengganti `AUTH_SECRET` berarti memasukkan ulang password SMTP). Pengaturan admin mengalahkan `SMTP_*` di `.env`.
+  - Gmail: aktifkan 2-Step Verification, buat App Password (myaccount.google.com/apppasswords), email pengirim = alamat
+    Gmail itu sendiri; batas ±500 email/hari.
+  - Domain sendiri (Brevo/Zoho/…): verifikasi domain pengirim (SPF + DKIM) agar tidak masuk spam.
+- `CRON_SECRET` (lihat `.env.example`) dibutuhkan untuk email "paket sampai" dan pengiriman ulang otomatis.
 - Tiap email dicatat di tabel `OrderEmail` dengan kunci unik → webhook yang berulang tidak mengirim email ganda.
   Riwayat & tombol kirim ulang ada di Admin → Pesanan → detail.
 - **Cron** (setiap 30 menit): cek status "sampai", baca ulang order terbuka bila webhook terlewat, ulangi email gagal.
   - VPS: `/etc/cron.d/mikaday` menjalankan `/opt/mikaday/cron.sh` (membaca `CRON_SECRET` dari `.env`).
   - Vercel: tambahkan Cron Job ke `/api/cron/orders` (Vercel mengirim header `Authorization: Bearer $CRON_SECRET` sendiri).
 - Status "sampai" bergantung pada data kurir di Printful; kurir tanpa pelacakan tidak memicu email ini.
+
+## SEO
+
+- **Metadata per halaman** lewat `pageMetadata()` di `src/lib/seo.ts`: title, description, canonical, Open Graph & Twitter
+  (gambar 1200×630). Halaman `/shop` dengan filter (`?q=`, `?category=`) ber-canonical ke `/shop`.
+- **Structured data (JSON-LD)**: Organization + WebSite (beranda), Product + BreadcrumbList (produk, tanpa rating rekaan),
+  CollectionPage/ItemList (shop & koleksi), Blog / BlogPosting (jurnal), FAQPage (FAQ).
+- **Gambar share** di `public/og/` (kartu MIKADAY, kartu Meet Mika, versi landscape foto Mika dengan label AI) dan logo
+  `public/brand/logo.png`. Setelah mengganti foto di `public/images/mika/`, jalankan `node scripts/generate-og-images.mjs`.
+- **Sitemap** (`/sitemap.xml`) memuat gambar produk & artikel; **robots.txt** menutup admin, API, keranjang, checkout, lacak.
+- Halaman keranjang, checkout, sukses, lacak, dan admin `noindex`.
+- **Google Search Console**: isi `GOOGLE_SITE_VERIFICATION` (metode tag HTML), build ulang, lalu kirim
+  `https://mikaday.store/sitemap.xml` di menu Sitemaps. Uji data terstruktur di https://search.google.com/test/rich-results.
 
 ## Konten lain (siap untuk SaCMS)
 
@@ -130,6 +148,22 @@ ganti implementasi adapter itu untuk menyambungkan CMS tanpa mengubah UI.
 
 Catatan: paket Vercel **Hobby hanya untuk penggunaan non-komersial** — toko online butuh paket **Pro**.
 Unggahan cover maks. 4 MB (batas body request Vercel 4,5 MB).
+
+## Server produksi (VPS mikaday.store)
+
+| Apa | Di mana |
+| --- | --- |
+| Aplikasi (PM2 `mikaday`, port 3010 di balik Caddy) | `/opt/mikaday/app` (`.env` permission 600) |
+| Deploy: build di folder terpisah lalu ditukar | `/opt/mikaday/deploy.sh <release.tar.gz>`; versi sebelumnya di `app-prev` |
+| Cron tiap 30 menit (status "sampai", order terlewat, ulang email) | `/etc/cron.d/mikaday` → `/opt/mikaday/cron.sh`, log `cron.log` |
+| Backup database harian 03:15, disimpan 14 hari | `/opt/mikaday/backups/*.dump`, log `backup.log` |
+| Backup `.env` | `/opt/mikaday/env-backups/` |
+| Rotasi log (PM2, cron, backup) | `/etc/logrotate.d/mikaday` |
+
+- Restore backup: `docker exec -i mikaday-postgres pg_restore -U mikaday -d mikaday --clean --if-exists < FILE.dump`.
+  Backup ada di VPS yang sama — unduh salinan berkala (mis. `scp`) agar aman bila VPS rusak.
+- Header keamanan (HSTS, anti-framing, nosniff, Referrer-Policy) diatur di `next.config.ts`.
+- Google Analytics hanya dimuat setelah pengunjung menyetujui cookie (banner + "Cookie settings" di footer).
 
 ## Catatan lain
 

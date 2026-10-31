@@ -395,3 +395,14 @@ Include:
 - Clear distinction between functioning demo features and services requiring production integration.
 
 The finished experience should make Mika memorable, communicate the MIKADAY identity, and give international customers a clear path from discovering a story to exploring a product.
+
+
+
+Di checkout, klik tombol Debit or Credit Card di bawah tombol PayPal.
+Isi kartu uji dari dokumentasi resmi PayPal:
+Visa: 4012 8888 8888 1881 (alternatif 4005 5192 0000 0004)
+Mastercard: 2223 0000 4840 0011
+Expiry: tanggal mana saja di masa depan, misalnya 12/30
+CVV: 123
+Untuk negara penagihan, pilih United States dengan alamat contoh 19749 Dearborn St, Chatsworth, CA 91311. Pembayaran kartu tanpa akun (guest) paling stabil di Sandbox dengan negara US.
+Untuk menguji kartu yang ditolak, isi nama di kartu dengan CCREJECT-REFUSED. Toko akan menampilkan pesan bahwa kartu ditolak dan meminta Anda memilih metode lain.

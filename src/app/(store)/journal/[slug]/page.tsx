@@ -8,9 +8,11 @@ import { SectionHeading } from "@/components/empty-state";
 import { JournalCard } from "@/components/journal/journal-card";
 import { ImageSlot } from "@/components/media/image-slot";
 import { ProductGrid } from "@/components/product/product-grid";
+import { JsonLd } from "@/components/seo/json-ld";
 import { getProductsByIds } from "@/lib/catalog";
 import { getArticle, getArticles, getMikaProfile } from "@/lib/content";
 import { formatDate } from "@/lib/format";
+import { articleJsonLd, breadcrumbJsonLd, ogImageFor, pageMetadata } from "@/lib/seo";
 
 export async function generateStaticParams() {
   const articles = await getArticles();
@@ -19,12 +21,15 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/journal/[slug]">): Promise<Metadata> {
   const article = await getArticle((await params).slug);
-  if (!article) return { title: "Story not found" };
-  return {
+  if (!article) return { title: "Story not found", robots: { index: false } };
+  return pageMetadata({
     title: article.title,
     description: article.excerpt,
-    openGraph: { type: "article", title: article.title, description: article.excerpt, publishedTime: article.publishedAt },
-  };
+    path: `/journal/${article.slug}`,
+    image: ogImageFor(article.cover),
+    type: "article",
+    publishedTime: article.publishedAt,
+  });
 }
 
 async function Content({ params }: Pick<PageProps<"/journal/[slug]">, "params">) {
@@ -36,6 +41,16 @@ async function Content({ params }: Pick<PageProps<"/journal/[slug]">, "params">)
 
   return (
     <div className="container-page py-10 lg:py-14">
+      <JsonLd
+        data={[
+          articleJsonLd(article),
+          breadcrumbJsonLd([
+            ["Home", "/"],
+            ["Journal", "/journal"],
+            [article.title, `/journal/${article.slug}`],
+          ]),
+        ]}
+      />
       <article>
         <header className="mx-auto max-w-2xl text-center">
           <p className="text-eyebrow text-primary">

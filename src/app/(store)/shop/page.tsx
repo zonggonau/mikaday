@@ -5,16 +5,37 @@ import { Suspense } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { ProductFilters, ShopToolbar, type ShopFacets } from "@/components/product/product-filters";
 import { ProductGrid, ProductGridSkeleton } from "@/components/product/product-grid";
+import { JsonLd } from "@/components/seo/json-ld";
 import { Button } from "@/components/ui/button";
 import { getPublishedProducts, type ProductSummary } from "@/lib/catalog";
 import { getCollections } from "@/lib/content";
+import { breadcrumbJsonLd, pageMetadata, productListJsonLd } from "@/lib/seo";
 import { parseShopQuery, type ShopQuery } from "@/lib/shop-query";
 import { PRICE_BANDS } from "@/lib/store-categories";
 
-export const metadata: Metadata = {
-  title: "Shop",
-  description: "Browse original MIKADAY designs — drinkware, clothing, and everyday accessories inspired by Mika's world.",
-};
+// Filtered and sorted views (?q=, ?category=…) all point their canonical at /shop.
+export const metadata: Metadata = pageMetadata({
+  title: "Shop Original Mugs & Everyday Designs",
+  description:
+    "Shop original MIKADAY designs inspired by Mika's world, like the Mountain Sunset Mug. Printed to order, with live shipping rates for your address at checkout.",
+  path: "/shop",
+});
+
+/** The full catalog (not the filtered view) as an ItemList. */
+async function ShopJsonLd() {
+  const products = await getPublishedProducts();
+  return (
+    <JsonLd
+      data={[
+        productListJsonLd("Shop", "/shop", products),
+        breadcrumbJsonLd([
+          ["Home", "/"],
+          ["Shop", "/shop"],
+        ]),
+      ]}
+    />
+  );
+}
 
 function applyQuery(products: ProductSummary[], query: ShopQuery, collectionProductIds: Set<string> | null) {
   const q = query.q.toLowerCase();
@@ -85,6 +106,7 @@ async function ShopResults({ searchParams }: Pick<PageProps<"/shop">, "searchPar
 export default function ShopPage({ searchParams }: PageProps<"/shop">) {
   return (
     <div className="container-page py-12 lg:py-16">
+      <ShopJsonLd />
       <header className="mb-10 max-w-2xl">
         <p className="text-eyebrow text-primary">Shop</p>
         <h1 className="mt-2 text-h1">Original pieces for everyday life</h1>

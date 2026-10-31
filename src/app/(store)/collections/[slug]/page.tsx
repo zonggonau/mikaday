@@ -5,8 +5,10 @@ import { CollectionArt, CollectionBanner } from "@/components/collection/collect
 import { SectionHeading } from "@/components/empty-state";
 import { JournalCard } from "@/components/journal/journal-card";
 import { ProductGrid, productGridClass } from "@/components/product/product-grid";
+import { JsonLd } from "@/components/seo/json-ld";
 import { getProductsByIds } from "@/lib/catalog";
 import { getArticles, getCollection, getCollections } from "@/lib/content";
+import { breadcrumbJsonLd, pageMetadata, productListJsonLd } from "@/lib/seo";
 
 export async function generateStaticParams() {
   const collections = await getCollections();
@@ -15,8 +17,14 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/collections/[slug]">): Promise<Metadata> {
   const collection = await getCollection((await params).slug);
-  if (!collection) return { title: "Collection not found" };
-  return { title: `${collection.name} Collection`, description: collection.summary };
+  if (!collection) return { title: "Collection not found", robots: { index: false } };
+  const [product] = await getProductsByIds(collection.productIds);
+  return pageMetadata({
+    title: `${collection.name} Collection`,
+    description: collection.summary,
+    path: `/collections/${collection.slug}`,
+    image: product?.imageUrl ? { url: product.imageUrl, alt: product.title } : undefined,
+  });
 }
 
 async function Content({ params }: Pick<PageProps<"/collections/[slug]">, "params">) {
@@ -28,6 +36,16 @@ async function Content({ params }: Pick<PageProps<"/collections/[slug]">, "param
 
   return (
     <div className="container-page py-10 lg:py-14">
+      <JsonLd
+        data={[
+          productListJsonLd(`${collection.name} Collection`, `/collections/${collection.slug}`, products),
+          breadcrumbJsonLd([
+            ["Home", "/"],
+            ["Collections", "/collections"],
+            [collection.name, `/collections/${collection.slug}`],
+          ]),
+        ]}
+      />
       <CollectionBanner collection={collection} headingLevel="h1" showButton={false} />
 
       <section aria-labelledby="collection-story" className="mx-auto mt-16 max-w-2xl">
